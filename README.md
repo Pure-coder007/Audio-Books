@@ -90,16 +90,16 @@ Schedule that command every minute using a **single** scheduler job. The durable
 Use a Python host or VPS that supports persistent storage and scheduled jobs. This Flask app cannot run on Cloudflare Workers / Sites.
 
 - Set `APP_ENV=production`, a strong `SECRET_KEY` of at least 32 characters, `BASE_URL=https://your-domain`, `DEMO_MODE=false`, real Stripe and SMTP credentials.
-- Use a shared Redis rate-limit backend (`RATELIMIT_STORAGE_URI=redis://...`). The app refuses production startup with in-memory rate limits or an HTTP base URL.
+- Redis is optional. For now, use `RATELIMIT_STORAGE_URI=memory://` with one Gunicorn worker and one web instance. Rate-limit counters reset on restart. Use shared Redis storage before running multiple workers or instances. Production still requires an HTTPS base URL.
 - Install `requirements-production.txt` and set `DATABASE_URL` to a PostgreSQL SQLAlchemy URL such as `postgresql+psycopg://...`. SQLite remains suitable for the local demo.
 - Run `python -m flask --app wsgi db upgrade` as the release step, then `create-admin` interactively.
-- Start with `python -m gunicorn --bind 0.0.0.0:8000 --workers 2 --timeout 120 wsgi:app`.
+- Start with `python -m gunicorn --bind 0.0.0.0:8000 --workers 1 --timeout 120 wsgi:app`.
 - Terminate TLS at your reverse proxy, forward requests to Gunicorn, permit the required upload size and hide access-token URL paths from proxy access logs. The app does not blindly trust forwarded headers. `BASE_URL` is authoritative for email and payment links.
 - Persist and back up `instance/media` and the database. Full audio is served by Flask after current entitlement checks; do not expose the media directory through the web server. For larger catalogues, replace the media service with private object storage and equivalent entitlement/expiring URL behavior.
 - Schedule one `deliver-emails` worker each minute and `cleanup-access` / `cleanup-media` daily. Cleanup has a 24-hour grace period for unreferenced upload files. Monitor queued emails, webhook failures, disk space and `/health`.
 - Complete a Stripe test purchase, receive its email, listen on desktop/mobile, confirm a refund revokes access, and replace fictional/demo content before real sales.
 
-Docker: `docker build -t myaudioshelf .`. Run with environment variables and a persistent volume mounted at `/app/instance`; provide PostgreSQL and Redis separately. The Docker image is prepared but has not been built here.
+Docker: `docker build -t myaudioshelf .`. Run with environment variables and a persistent volume mounted at `/app/instance`; provide PostgreSQL separately; Redis is optional for a single worker. The Docker image is prepared but has not been built here.
 
 ## Scope and verification
 
@@ -117,3 +117,5 @@ Open `http://localhost:5000/login` for existing customer email/password sign-in.
 
 The admin studio includes a refreshed sidebar, dashboard metrics, cover thumbnails beside book details, title search, and a crimson sign-out button. Catalogue and admin list pages use 10 items per page. “Search all books” clears previous filters; “Apply filters” combines the selected filters with the search term. Public sign-up remains disabled.
 # Audio-Books
+
+Render without Redis: set `RATELIMIT_STORAGE_URI=memory://` and use start command `gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120`.

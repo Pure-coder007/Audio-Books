@@ -29,8 +29,6 @@ def create_app(test_config=None):
             raise RuntimeError('Production SECRET_KEY must have at least 32 characters.')
         if not app.config['BASE_URL'].startswith('https://'):
             raise RuntimeError('Production BASE_URL must use HTTPS.')
-        if app.config['RATELIMIT_STORAGE_URI'] == 'memory://':
-            raise RuntimeError('Production requires shared rate-limit storage (Redis).')
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['DEMO_MODE'] = False
     db.init_app(app)
