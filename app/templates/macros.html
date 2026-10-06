@@ -1,0 +1,17 @@
+{% macro cart_icon() %}<svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h3l2.4 12h11.4L21 7H6"/><path d="M8 18h10"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>{% endmacro %}
+{% macro trailer(book, label='Listen to preview', preview=false) %}
+{% set asset = book.asset('trailer') %}
+{% if asset %}<button type="button" class="trailer-button" data-trailer="{{ url_for('admin.preview_media', media_id=asset.id) if preview else url_for('main.public_media', media_id=asset.id) }}" data-title="{{ book.title }}" data-book-id="{{ book.id }}"><span aria-hidden="true">▶</span> {{ label }}</button>{% endif %}
+{% endmacro %}
+{% macro book_card(book) %}
+<article class="book-card">
+ <a class="cover-wrap" href="{{ url_for('main.book', slug=book.slug) }}"><img src="{{ book.cover_url }}" alt="{{ book.title }} cover" width="360" height="540" loading="lazy"><span class="cover-cta">Discover this story ↗</span></a>
+ <div class="book-card-info"><div class="book-meta"><span>{{ book.production_style }}</span><span>{{ book.duration_label }}</span></div>
+ <h3><a href="{{ url_for('main.book', slug=book.slug) }}">{{ book.title }}</a></h3><p class="book-author">{{ book.author.name }}</p>
+ <div class="card-bottom"><strong>{{ book.price_minor|money(book.currency) }}</strong><div class="card-controls">{{ trailer(book, 'Preview') }}<form data-cart-add data-book-title="{{ book.title }}" method="post" action="{{ url_for('cart.add', book_id=book.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="card-cart-button" aria-label="Add {{ book.title }} to cart" title="Add to cart">{{ cart_icon() }}</button></form></div></div>
+</div></article>
+{% endmacro %}
+{% macro book_grid(books) %}<div class="book-grid">{% for book in books %}{{ book_card(book) }}{% endfor %}</div>{% endmacro %}
+{% macro pagination(page) %}
+{% if page.pages > 1 %}<nav class="pagination" aria-label="Pagination">{% if page.has_prev %}<a class="button secondary" href="{{ url_for(request.endpoint, page=page.prev_num, **(request.args.to_dict()|reject_page|with_view_args)) }}">← Previous</a>{% endif %}<span>Page {{ page.page }} of {{ page.pages }}</span>{% if page.has_next %}<a class="button secondary" href="{{ url_for(request.endpoint, page=page.next_num, **(request.args.to_dict()|reject_page|with_view_args)) }}">Next →</a>{% endif %}</nav>{% endif %}
+{% endmacro %}

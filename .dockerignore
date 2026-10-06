@@ -1,0 +1,9 @@
+.venv
+.env
+instance
+__pycache__
+.pytest_cache
+.qodo
+.git
+*.pyc
+docs/*.png

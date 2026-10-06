@@ -1,0 +1,11 @@
+Flask>=3.1,<4
+Flask-SQLAlchemy>=3.1,<4
+Flask-Migrate>=4,<5
+Flask-WTF>=1.2,<2
+Flask-Limiter[redis]>=3.8,<5
+stripe>=12,<15
+python-dotenv>=1,<2
+Pillow>=11,<13
+mutagen>=1.47,<2
+gunicorn>=23,<27
+pytest>=8,<10

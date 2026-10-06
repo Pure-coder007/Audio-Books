@@ -1,0 +1,46 @@
+{% from 'macros.html' import cart_icon %}
+<!doctype html>
+<html lang="en" data-color-mode="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MyAudioShelf — Stories worth listening to{% endblock %}</title>
+  <meta name="description" content="{% block description %}Discover African stories, unforgettable voices and immersive audiobooks. Find your next listen on MyAudioShelf.{% endblock %}">
+  <link rel="canonical" href="{{ config.BASE_URL }}{{ request.path }}">
+  <meta name="theme-color" content="#C7F000"><meta name="csrf-token" content="{{ csrf_token() }}">
+  {% if demo_mode %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block head %}{% endblock %}
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</head>
+{% set active_genre = selected_genre if selected_genre else (book.categories[0] if book and book.categories else none) %}
+<body class="theme-{{ genre_theme(active_genre.slug if active_genre else request.args.get('collection')).key }}">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <a class="brand" href="{{ url_for('main.home') }}" aria-label="MyAudioShelf home"><img class="brand-logo" src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf — Audiobooks only" width="1535" height="1024" fetchpriority="high"></a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="main-nav">Menu ☰</button>
+  <nav id="main-nav" aria-label="Main navigation">
+    <a class="{{ 'active' if request.endpoint in ['main.catalog','main.category','main.book'] and request.args.get('collection') != 'originals' }}" href="{{ url_for('main.catalog') }}">The bookshelf</a>
+    <a class="{{ 'active' if request.args.get('collection') == 'originals' }}" href="{{ url_for('main.catalog', collection='originals') }}">Originals</a>
+    <a class="{{ 'active' if request.endpoint == 'main.production' }}" href="{{ url_for('main.production') }}">For authors</a>
+  </nav>
+  <div class="nav-tools"><button type="button" class="book-sound-toggle" aria-label="Mute book-opening sounds" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z"/><path class="sound-waves" d="M16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-slash" d="m17 9 5 6m0-6-5 6"/></svg></button><button type="button" class="theme-toggle" aria-label="Switch to light theme">☀</button><a class="library-link" href="{{ url_for('library.index') }}">My purchases</a><a class="cart-link" aria-label="Shopping cart, {{ cart_count }} audiobook{{ 's' if cart_count != 1 }}" href="{{ url_for('cart.index') }}"> {{ cart_icon() }}<span class="cart-label">Cart</span><span class="cart-count">{{ cart_count }}</span></a></div>
+</header>
+<div class="flash-wrap" aria-live="polite">{% for category, message in get_flashed_messages(with_categories=true) %}<div class="flash {{ category }}">{{ message }}<button type="button" data-dismiss aria-label="Dismiss message">×</button></div>{% endfor %}</div>
+<div id="cart-feedback" class="cart-feedback" role="status" aria-live="polite" hidden></div>
+<main id="main">{% block content %}{% endblock %}</main>
+<footer class="site-footer">
+ <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf — Audiobooks only" width="1535" height="1024" loading="lazy"></a><p>Good stories. Great voices.<br>A whole new way to read.</p></div>
+ <div><span class="eyebrow">Find your story</span><a href="{{ url_for('main.catalog') }}">Browse audiobooks</a><a href="{{ url_for('main.catalog', collection='children') }}">Children’s shelf</a><a href="{{ url_for('library.index') }}">My purchases</a></div>
+ <div><span class="eyebrow">Make something heard</span><a href="{{ url_for('main.production') }}">Authors & publishers</a><a href="{{ url_for('admin.login') }}">Staff sign-in</a><p>Made for stories that stay with you.</p></div>
+ <div class="footer-bottom"><span>© 2026 MyAudioShelf</span><span>Listen a little. Discover a lot.</span></div>
+</footer>
+<div id="preview-player" class="preview-player" hidden aria-label="Audiobook trailer player">
+ <div class="preview-info"><span class="eyebrow">A little taste of the story</span><strong id="preview-title"></strong></div>
+ <audio id="preview-audio" controls preload="none"></audio>
+ <button type="button" id="preview-close" class="icon-button" aria-label="Close trailer player">×</button>
+ <span id="preview-status" role="status"></span>
+</div>
+</body></html>

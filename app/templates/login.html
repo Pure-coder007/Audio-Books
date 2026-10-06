@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Log in — MyAudioShelf{% endblock %}
+{% block content %}
+<section class="section-shell page-shell account-shell">
+<div class="account-intro"><span class="eyebrow">Welcome back to your shelf</span><h1>Your next chapter<br>starts here.</h1><p>Sign in to find your purchases and pick up where you left off.</p><a class="text-link" href="{{ url_for('main.catalog') }}">Explore the bookshelf ↗</a></div>
+<div class="account-panel"><span class="eyebrow">MyAudioShelf account</span><h2>Welcome back.</h2><p>Log in with your email and password.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label for="login-email">Email address</label><input id="login-email" type="email" name="email" autocomplete="username" required maxlength="254" placeholder="you@example.com" value="{{ request.form.get('email', '') }}"><label for="login-password">Password</label><input id="login-password" type="password" name="password" autocomplete="current-password" required maxlength="128"><a class="account-help" href="{{ url_for('library.index') }}">Forgot your password?</a><button class="button full-width">Log in ↗</button></form>
+<a class="account-alternative" href="{{ url_for('library.index') }}">Access purchases with an email link →</a></div>
+</section>{% endblock %}
