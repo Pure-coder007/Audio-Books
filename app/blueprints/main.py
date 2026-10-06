@@ -10,7 +10,7 @@ bp = Blueprint('main', __name__)
 
 def visible_books():
     query = db.select(Audiobook).where(Audiobook.state == 'published', Audiobook.saleable.is_(True))
-    if not current_app.config['DEMO_MODE']:
+    if not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG']):
         query = query.where(Audiobook.is_demo.is_(False))
     return query
 
@@ -98,7 +98,7 @@ def public_media(media_id):
     asset = db.get_or_404(MediaAsset, media_id)
     if asset.kind not in {'cover', 'trailer', 'compare_plain', 'compare_immersive'}:
         abort(404)
-    if asset.book.state != 'published' or (asset.book.is_demo and not current_app.config['DEMO_MODE']):
+    if asset.book.state != 'published' or (asset.book.is_demo and not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG'])):
         abort(404)
     path = media_path(asset)
     if not path.is_file():

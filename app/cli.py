@@ -43,8 +43,8 @@ def register_commands(app):
 
     @app.cli.command('seed-demo')
     def seed_demo():
-        if app.config['PRODUCTION']:
-            raise click.ClickException('Demo seeding is disabled in production.')
+        if app.config['PRODUCTION'] and not app.config['SAMPLE_CATALOG']:
+            raise click.ClickException('Set SAMPLE_CATALOG=true to restore sample titles in production.')
         from .seed import seed
         seed(app)
         click.echo('Demo shelf ready. Fictional titles cannot be sold through Stripe.')
