@@ -274,3 +274,22 @@ const themeButton=document.querySelector('.theme-toggle');
 function updateThemeButton(){const dark=document.documentElement.dataset.colorMode==='dark';document.querySelector('meta[name="theme-color"]').content=dark?'#111813':'#f9f8f3';themeButton.textContent=dark?'☀':'☾';themeButton.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme');themeButton.title=themeButton.getAttribute('aria-label');}
 updateThemeButton();
 themeButton.addEventListener('click',()=>{const mode=document.documentElement.dataset.colorMode==='dark'?'light':'dark';document.documentElement.dataset.colorMode=mode;try{localStorage.setItem('myaudioshelf-theme',mode);}catch{}updateThemeButton();});
+
+// A small, nonblocking spinner for normal page navigation.
+let loaderTimeout;
+function showPageLoader(){
+  document.documentElement.classList.add('page-loading');
+  clearTimeout(loaderTimeout);
+  loaderTimeout=setTimeout(()=>document.documentElement.classList.remove('page-loading'),15000);
+}
+document.addEventListener('click',event=>{
+  const link=event.target.closest('a[href]');
+  if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.hasAttribute('download')||(link.target&&link.target!=='_self'))return;
+  const destination=new URL(link.href,location.href);
+  if(destination.origin!==location.origin||(destination.pathname===location.pathname&&destination.search===location.search&&destination.hash))return;
+  if(event.defaultPrevented&&!link.dataset.navigating)return;
+  showPageLoader();
+});
+document.addEventListener('submit',event=>{
+  if(!event.defaultPrevented&&!event.target.matches('[data-cart-add]'))showPageLoader();
+});

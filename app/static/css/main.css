@@ -2830,3 +2830,10 @@ html[data-color-mode=light] .account-help,html[data-color-mode=light] .account-f
 @media(max-width:1100px){.catalog-list .cover-wrap{width:95px;flex-basis:95px}.catalog-list .book-card{gap:16px;padding:16px}.catalog-list .book-card h3{font-size:20px}.admin-content .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:800px){.catalog-list .book-grid{grid-template-columns:1fr}.admin-layout{display:block}.admin-sidebar{position:static;margin-bottom:28px}.admin-sidebar nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.admin-sidebar .staff-meta{margin-top:18px}.admin-content td{padding:14px}.studio-topbar{font-size:9px}.catalog-list .cover-wrap{width:100px;flex-basis:100px}}
 @media(max-width:560px){.theme-toggle{width:27px;height:27px;font-size:17px}.catalog-list .book-card{gap:14px;padding:14px}.catalog-list .cover-wrap{width:85px;flex-basis:85px}.catalog-list .book-card h3{font-size:18px}.catalog-list .book-meta{font-size:9px}.admin-content .stats-grid>div{padding:18px}.admin-content .stats-grid strong{font-size:26px}.admin-content .section-heading{flex-wrap:wrap;gap:16px}.admin-search{flex-wrap:wrap}.admin-sidebar{padding:22px 16px}}
+
+/* Simple page-loading indicator; the page stays usable underneath. */
+.page-loader{position:fixed;top:calc(var(--nav-height,120px) + 14px);left:50%;transform:translateX(-50%);z-index:1000;background:var(--surface);border:1px solid var(--line);border-radius:50%;padding:12px;box-shadow:0 4px 16px #0002;pointer-events:none}
+html.page-loading .page-loader[hidden]{display:grid}
+.loading-spinner{display:block;width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:page-spinner .7s linear infinite}
+@keyframes page-spinner{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.loading-spinner{animation:none;border-top-color:var(--ink);border-right-color:var(--ink)}}
