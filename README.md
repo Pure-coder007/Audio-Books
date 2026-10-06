@@ -119,3 +119,11 @@ The admin studio includes a refreshed sidebar, dashboard metrics, cover thumbnai
 # Audio-Books
 
 Render without Redis: set `RATELIMIT_STORAGE_URI=memory://` and use start command `gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120`.
+
+### Render database initialization
+
+Set the Render start command to `sh render-start.sh`. This runs migrations against the runtime database before Gunicorn starts, using a single worker without Redis. An error such as `no such table: category` means the configured database has not been migrated.
+
+For durable SQLite storage, attach a persistent disk at `/opt/render/project/src/instance` and set `DATABASE_URL=sqlite:////opt/render/project/src/instance/myaudioshelf.db`. Without a disk, SQLite data and uploaded audio are lost when Render replaces the instance. PostgreSQL is the other supported durable database option. Run `python -m flask --app wsgi create-admin` in the Render Shell after deployment to create the staff account in the deployed database.
+
+On Render, the repository's default `gunicorn.conf.py` also runs migrations once in the master process before workers start. This supports the existing `gunicorn wsgi:app ...` start command without a dashboard change. Local Gunicorn runs do not migrate automatically. Render disks and other service settings must still be configured in the dashboard.

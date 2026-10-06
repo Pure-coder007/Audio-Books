@@ -47,7 +47,7 @@ def create_app(test_config=None):
     def shared():
         from .models import Category
         from .genre_themes import genre_theme
-        return {'genre_theme': genre_theme, 'genres': db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all(),
+        return {'genre_theme': genre_theme, 'genres': [] if getattr(g, 'rendering_error', False) else db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all(),
             'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE']}
     @app.template_filter('reject_page')
     def reject_page(args):
@@ -75,6 +75,7 @@ def create_app(test_config=None):
         return response
     for code in [400, 403, 404, 413, 429, 500, 503]:
         def handler(error, code=code):
+            g.rendering_error = True
             db.session.rollback()
             return render_template('error.html', code=code), code
         app.register_error_handler(code, handler)
