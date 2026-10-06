@@ -48,7 +48,8 @@ def create_app(test_config=None):
     @app.errorhandler(CSRFError)
     def csrf_error(error):
         if request.accept_mimetypes.best == 'application/json':
-            return {'error': 'Your session has expired. Refresh the page and try again.', 'code': 'csrf_expired'}, 400
+            token_error = 'referrer' not in error.description.lower()
+            return {'error': 'Your session has expired. Refresh the page and try again.' if token_error else 'Could not verify this request. Reload the page and try again.', 'code': 'csrf_expired' if token_error else 'csrf_origin'}, 400
         g.rendering_error = True
         return render_template('error.html', code=400), 400
 
@@ -78,7 +79,7 @@ def create_app(test_config=None):
             response.headers['Cache-Control'] = 'private, no-store'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['Referrer-Policy'] = 'no-referrer'
+        response.headers['Referrer-Policy'] = 'same-origin'
         response.headers['Content-Security-Policy'] = "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://checkout.stripe.com"
         if getattr(g, 'csp_nonce', None):
             response.headers['Content-Security-Policy'] = response.headers['Content-Security-Policy'].replace("script-src 'self'", "script-src 'self' 'nonce-" + g.csp_nonce + "'")

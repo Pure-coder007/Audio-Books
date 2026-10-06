@@ -60,3 +60,19 @@ def test_production_sample_cart_with_fresh_csrf(app, client):
     assert added.status_code==200
     assert added.json['count']==1
     assert b'Test Book' in client.get('/cart').data
+
+
+def test_https_cart_uses_same_origin_referrer_policy(app, client):
+    app.config.update(WTF_CSRF_ENABLED=True)
+    origin='https://example.com'
+    token=client.get('/session/csrf',base_url=origin)
+    assert token.headers['Referrer-Policy']=='same-origin'
+    path=f'/cart/add/{app.config["TEST_BOOK_ID"]}'
+    headers={'Accept':'application/json','X-CSRFToken':token.json['csrf_token']}
+    assert client.post(path,base_url=origin,headers=headers).json['code']=='csrf_origin'
+    headers['Referer']=origin+'/'
+    response=client.post(path,base_url=origin,headers=headers)
+    assert response.status_code==200
+    assert response.json['count']==1
+    headers['Referer']='https://untrusted.example/'
+    assert client.post(path,base_url=origin,headers=headers).status_code==400
