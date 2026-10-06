@@ -8,7 +8,7 @@ def cart_books():
     ids = [i for i in session.get('cart', []) if isinstance(i, int)][:30]
     books = db.session.scalars(db.select(Audiobook).where(Audiobook.id.in_(ids),
         Audiobook.state == 'published', Audiobook.saleable.is_(True))).all()
-    if not current_app.config['DEMO_MODE']:
+    if not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG']):
         books = [b for b in books if not b.is_demo]
     session['cart'] = [b.id for b in books]
     return books
@@ -24,7 +24,7 @@ def index():
 @bp.post('/cart/add/<int:book_id>')
 def add(book_id):
     book = db.get_or_404(Audiobook, book_id)
-    if book.state != 'published' or not book.saleable or (book.is_demo and not current_app.config['DEMO_MODE']):
+    if book.state != 'published' or not book.saleable or (book.is_demo and not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG'])):
         abort(404)
     ids = session.get('cart', [])
     added = book_id not in ids

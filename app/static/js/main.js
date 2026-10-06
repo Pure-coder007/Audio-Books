@@ -153,8 +153,12 @@ document.querySelectorAll('[data-cart-add]').forEach(form => form.addEventListen
   cartAddQueue = new Promise(resolve => {releaseAddition = resolve;});
   try {
     await previousAddition;
-    const response = await fetch(form.action, {method:'POST',headers:{Accept:'application/json','X-CSRFToken':csrf},body:new FormData(form)});
-    const result = await response.json();
+    const tokenResponse = await fetch('/session/csrf', {credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+    if(!tokenResponse.ok)throw new Error('Could not refresh your session. Please try again.');
+    const token = (await tokenResponse.json()).csrf_token;
+    const payload = new FormData(form);payload.set('csrf_token',token);
+    const response = await fetch(form.action, {method:'POST',credentials:'same-origin',headers:{Accept:'application/json','X-CSRFToken':token},body:payload});
+    const result = response.headers.get('content-type')?.includes('application/json') ? await response.json() : {error:'Could not add this title. Refresh the page and try again.'};
     if (!response.ok) throw new Error(result.error || 'Could not add this title. Please try again.');
     document.querySelectorAll('.cart-count').forEach(count => count.textContent = result.count);
     document.querySelector('.cart-link').setAttribute('aria-label', `Shopping cart, ${result.count} audiobooks`);

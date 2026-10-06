@@ -3,6 +3,7 @@ import secrets
 from pathlib import Path
 from datetime import timedelta
 from flask import Flask, render_template, session, request, g
+from flask_wtf.csrf import CSRFError, generate_csrf
 from .config import Config
 from .extensions import db, migrate, csrf, limiter
 
@@ -40,6 +41,17 @@ def create_app(test_config=None):
         app.register_blueprint(module.bp)
     from .cli import register_commands
     register_commands(app)
+    @app.get('/session/csrf')
+    def session_csrf():
+        return {'csrf_token': generate_csrf()}
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(error):
+        if request.accept_mimetypes.best == 'application/json':
+            return {'error': 'Your session has expired. Refresh the page and try again.', 'code': 'csrf_expired'}, 400
+        g.rendering_error = True
+        return render_template('error.html', code=400), 400
+
     @app.before_request
     def csp_nonce():
         g.csp_nonce = secrets.token_urlsafe(16)
@@ -61,6 +73,9 @@ def create_app(test_config=None):
         return symbols.get(currency, currency.upper() + ' ') + f'{value / 100:,.2f}'.removesuffix('.00')
     @app.after_request
     def headers(response):
+        # Every rendered page contains session-bound CSRF tokens.
+        if response.mimetype == 'text/html' or request.path == '/session/csrf':
+            response.headers['Cache-Control'] = 'private, no-store'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['Referrer-Policy'] = 'no-referrer'
