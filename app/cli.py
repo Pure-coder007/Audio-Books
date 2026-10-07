@@ -77,6 +77,8 @@ def register_commands(app):
         import time
         from .models import MediaAsset
         retained = set(db.session.scalars(db.select(MediaAsset.storage_key)).all())
+        from .models import ProductionEnquiry
+        retained.update(db.session.scalars(db.select(ProductionEnquiry.attachment_key).where(ProductionEnquiry.attachment_key.is_not(None))).all())
         removed = 0
         for path in Path(app.config['MEDIA_ROOT']).glob('*'):
             if path.is_file() and path.name not in retained and path.stat().st_mtime < time.time() - 86400:

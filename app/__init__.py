@@ -74,6 +74,15 @@ def create_app(test_config=None):
         return symbols.get(currency, currency.upper() + ' ') + f'{value / 100:,.2f}'.removesuffix('.00')
     @app.after_request
     def headers(response):
+        if request.method == 'GET' and response.status_code == 200 and response.mimetype == 'text/html' and request.blueprint == 'main':
+            from .models import AnalyticsEvent
+            from sqlalchemy.exc import SQLAlchemyError
+            try:
+                db.session.add(AnalyticsEvent(kind=('page_view:' + request.path)[:100]))
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                app.logger.warning('Could not record aggregate page engagement.')
         # Every rendered page contains session-bound CSRF tokens.
         if response.mimetype == 'text/html' or request.path == '/session/csrf':
             response.headers['Cache-Control'] = 'private, no-store'

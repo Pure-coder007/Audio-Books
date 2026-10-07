@@ -78,7 +78,7 @@ def test_invalid_prices_rejected(admin_client,app,price):
     with app.app_context():assert db.session.scalar(db.select(Audiobook).where(Audiobook.slug=='new-real-title')) is None
 
 def test_production_and_newsletter_forms(client,app):
-    assert client.post('/production',data={'name':'An Author','email':'author@example.com','title':'My Book','message':'Please produce it.'}).status_code==302
+    assert client.post('/production',data={'name':'An Author','email':'author@example.com','title':'My Book','message':'Please produce it.','consent':'on'}).status_code==302
     assert client.post('/newsletter',data={'email':'reader@example.com','consent':'on'}).status_code==302
     with app.app_context():
         assert db.session.scalar(db.select(ProductionEnquiry)).title=='My Book'

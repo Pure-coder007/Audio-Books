@@ -158,6 +158,14 @@ class StripeEvent(db.Model):
     processed_at = db.Column(db.DateTime, default=now)
 
 class ProductionEnquiry(db.Model):
+    enquiry_type = db.Column(db.String(30), default='author', server_default='author', nullable=False)
+    project_details = db.Column(db.Text, default='{}')
+    attachment_key = db.Column(db.String(200))
+    attachment_name = db.Column(db.String(180))
+    @property
+    def details(self):
+        import json
+        return json.loads(self.project_details or '{}')
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(254), nullable=False)
@@ -168,6 +176,7 @@ class ProductionEnquiry(db.Model):
     created_at = db.Column(db.DateTime, default=now)
 
 class NewsletterSubscriber(db.Model):
+    first_name = db.Column(db.String(100), default='')
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(254), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=now)

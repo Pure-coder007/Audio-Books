@@ -47,7 +47,10 @@ def logout():
 def dashboard():
     orders = db.session.scalars(db.select(Order).order_by(Order.created_at.desc()).limit(8)).all()
     revenue = db.session.execute(db.select(Order.currency, db.func.sum(Order.total_minor)).where(Order.status == 'paid').group_by(Order.currency)).all()
-    counts = {'books': db.session.scalar(db.select(db.func.count()).select_from(Audiobook)),
+    counts = {'page_views': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind.like('page_view:%'))),
+        'audio_completions': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind == 'audio_complete')),
+        'contacts': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind == 'contact_submission')),
+        'books': db.session.scalar(db.select(db.func.count()).select_from(Audiobook)),
         'drafts': db.session.scalar(db.select(db.func.count()).select_from(Audiobook).where(Audiobook.state == 'draft')),
         'orders': db.session.scalar(db.select(db.func.count()).select_from(Order)),
         'enquiries': db.session.scalar(db.select(db.func.count()).select_from(ProductionEnquiry).where(ProductionEnquiry.status == 'new')),
@@ -332,3 +335,16 @@ def outbox():
         abort(404)
     page = db.paginate(db.select(EmailDelivery).order_by(EmailDelivery.created_at.desc()), per_page=10, error_out=False)
     return render_template('admin/outbox.html', page=page)
+
+
+@bp.get('/enquiries/<int:enquiry_id>/manuscript')
+@admin_required('owner','editor')
+def manuscript(enquiry_id):
+    from pathlib import Path
+    item=db.get_or_404(ProductionEnquiry,enquiry_id)
+    if not item.attachment_key:abort(404)
+    path=Path(current_app.config['MEDIA_ROOT']) / item.attachment_key
+    if not path.is_file():abort(404)
+    response=send_file(path,as_attachment=True,download_name=item.attachment_name)
+    response.headers['Cache-Control']='private, no-store'
+    return response

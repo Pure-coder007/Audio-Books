@@ -1,3 +1,4 @@
+from pathlib import Path
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, abort, Response, current_app
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
@@ -126,8 +127,21 @@ def production():
                 raise ValueError('Complete all fields so we can understand your project.')
             if request.form.get('website'):
                 return redirect(url_for('main.production'))
-            db.session.add(ProductionEnquiry(name=name, email=email, title=title, message=message))
-            db.session.commit()
+            from ..services.enquiry_service import project_details, save_manuscript
+            if not request.form.get('consent'):
+                raise ValueError('Please agree to the use of your details for this enquiry.')
+            details = project_details(request.form)
+            attachment = save_manuscript(request.files.get('manuscript'))
+            enquiry = ProductionEnquiry(name=name, email=email, title=title, message=message, project_details=details)
+            if attachment: enquiry.attachment_key, enquiry.attachment_name = attachment
+            db.session.add(enquiry)
+            db.session.add(AnalyticsEvent(kind='author_enquiry'))
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                if attachment: (Path(current_app.config['MEDIA_ROOT']) / attachment[0]).unlink(missing_ok=True)
+                raise
             flash('Your project is on our desk. The production team will review your enquiry.', 'success')
             return redirect(url_for('main.production'))
         except ValueError as error:
@@ -142,7 +156,7 @@ def newsletter():
         if not request.form.get('consent'):
             raise ValueError('Please agree to receive shelf updates.')
         if not db.session.scalar(db.select(NewsletterSubscriber).where(NewsletterSubscriber.email == email)):
-            db.session.add(NewsletterSubscriber(email=email))
+            db.session.add(NewsletterSubscriber(email=email, first_name=request.form.get('first_name', '').strip()[:100]))
             db.session.commit()
         flash('You’re on the list. Welcome to the Shelf.', 'success')
     except IntegrityError:
@@ -154,7 +168,8 @@ def newsletter():
 
 @bp.get('/sitemap.xml')
 def sitemap():
-    pages = [current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.production')]
+    from ..content.company import PAGES
+    pages = [current_app.config['BASE_URL'] + '/' + slug for slug in PAGES] + [current_app.config['BASE_URL'] + url_for('main.contact'), current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.production')]
     books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False))).all()
     pages.extend(current_app.config['BASE_URL'] + url_for('main.book', slug=b.slug) for b in books)
     authors = db.session.scalars(db.select(Author).where(Author.id.in_({b.author_id for b in books}))).all()
@@ -171,3 +186,54 @@ def robots():
 def health():
     db.session.execute(db.text('SELECT 1'))
     return {'status': 'ok'}
+
+
+@bp.get('/about')
+@bp.get('/services')
+@bp.get('/immersive-audio')
+@bp.get('/children')
+@bp.get('/originals')
+@bp.get('/innovation')
+@bp.get('/privacy')
+@bp.get('/terms')
+@bp.get('/accessibility')
+def company():
+    from ..content.company import PAGES
+    slug = request.path.strip('/')
+    books = []
+    if slug in {'children','originals'}:
+        flag = Audiobook.children if slug == 'children' else Audiobook.original
+        books = db.session.scalars(visible_books().where(flag.is_(True)).limit(4)).all()
+    comparison = next((b for b in db.session.scalars(visible_books()).all() if b.asset('compare_plain') and b.asset('compare_immersive')), None) if slug == 'immersive-audio' else None
+    return render_template('company.html', content=PAGES[slug], slug=slug, collection_books=books, comparison=comparison)
+
+@bp.route('/contact', methods=['GET','POST'])
+@limiter.limit('10 per hour', methods=['POST'])
+def contact():
+    from ..services.enquiry_service import ENQUIRY_TYPES
+    if request.method == 'POST':
+        try:
+            if request.form.get('website'):return redirect(url_for('main.contact'))
+            email=normalize_email(request.form.get('email'))
+            name=request.form.get('name','').strip()[:150]
+            message=request.form.get('message','').strip()[:10000]
+            kind=request.form.get('enquiry_type','general')
+            if not name or not message or kind not in ENQUIRY_TYPES:raise ValueError('Complete your name, enquiry type and message.')
+            if not request.form.get('consent'):raise ValueError('Please agree to the use of your details for this enquiry.')
+            db.session.add(ProductionEnquiry(name=name,email=email,title=ENQUIRY_TYPES[kind],message=message,enquiry_type=kind))
+            db.session.add(AnalyticsEvent(kind='contact_submission'))
+            db.session.commit()
+            flash('Your enquiry has been received. Our team will review your message.', 'success')
+            return redirect(url_for('main.contact'))
+        except ValueError as error:flash(str(error),'error')
+    return render_template('contact.html', enquiry_types=ENQUIRY_TYPES)
+
+
+@bp.post('/engagement')
+@limiter.limit('30 per minute')
+def engagement():
+    data=request.get_json(silent=True) or {}
+    if data.get('kind') not in {'audio_start','audio_complete'}:abort(400)
+    db.session.add(AnalyticsEvent(kind=data['kind']))
+    db.session.commit()
+    return {'recorded':True}

@@ -297,3 +297,17 @@ document.addEventListener('click',event=>{
 document.addEventListener('submit',event=>{
   if(!event.defaultPrevented&&!event.target.matches('[data-cart-add]'))showPageLoader();
 });
+
+// Keep discovery navigation accessible without adding another navigation bar.
+const discoverMenu=document.querySelector('.nav-discover');
+document.addEventListener('click',event=>{if(discoverMenu&&!discoverMenu.contains(event.target))discoverMenu.open=false;});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&discoverMenu?.open){discoverMenu.open=false;discoverMenu.querySelector('summary').focus();}});
+// Native demonstration players share playback focus with previews.
+document.addEventListener('play',event=>{if(event.target.tagName==='AUDIO')document.querySelectorAll('audio').forEach(audio=>{if(audio!==event.target)audio.pause();});},true);
+
+// Aggregate listening events: no identity, country or fingerprint collection.
+document.querySelectorAll('audio').forEach(audio=>{
+  audio.addEventListener('emptied',()=>delete audio.dataset.engagementStarted);
+  audio.addEventListener('play',()=>{if(!audio.dataset.engagementStarted){audio.dataset.engagementStarted='true';postJSON('/engagement',{kind:'audio_start'}).catch(()=>{});}});
+  audio.addEventListener('ended',()=>{postJSON('/engagement',{kind:'audio_complete'}).catch(()=>{});delete audio.dataset.engagementStarted;});
+});
