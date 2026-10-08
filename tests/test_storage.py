@@ -59,3 +59,13 @@ def test_private_download_rejects_unpaid_access_before_storage_lookup(client,app
     configure(app);get=MagicMock();monkeypatch.setattr(requests,'get',get)
     assert client.get('/library/download/'+app.config['TEST_BOOK_ID']).status_code==403
     get.assert_not_called()
+
+def test_upload_retries_from_beginning_after_connection_failure(app,monkeypatch):
+    configure(app);bodies=[]
+    def put(url,**kwargs):
+        bodies.append(kwargs['data'].read())
+        if len(bodies)==1:raise requests.ConnectionError('network interrupted')
+        return response(201)
+    monkeypatch.setattr(requests,'put',put)
+    with app.app_context():upload('private.wav')
+    assert len(bodies)==2 and bodies[0]==bodies[1]

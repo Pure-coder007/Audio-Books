@@ -38,13 +38,22 @@ def remote_url(key):
 def upload(key):
     if not enabled():
         return
-    try:
-        with local_path(key).open('rb') as source:
-            with requests.put(remote_url(key), data=source, headers={'AccessKey': current_app.config['BUNNY_STORAGE_ACCESS_KEY'], 'Content-Type': 'application/octet-stream'}, timeout=(10, 180), allow_redirects=False) as response:
-                if response.status_code not in (200, 201):
+    for attempt in range(3):
+        try:
+            # Reopen on each attempt so a interrupted upload starts from byte zero.
+            with local_path(key).open('rb') as source:
+                with requests.put(remote_url(key), data=source, headers={'AccessKey': current_app.config['BUNNY_STORAGE_ACCESS_KEY'], 'Content-Type': 'application/octet-stream'}, timeout=(20, 180), allow_redirects=False) as response:
+                    if response.status_code in (200, 201):
+                        return
+                    if response.status_code == 429 or response.status_code >= 500:
+                        if attempt < 2:
+                            continue
                     raise StorageError('Media storage upload failed. Check your Bunny storage credentials and endpoint.')
-    except (requests.RequestException, OSError) as error:
-        raise StorageError('Media storage is unavailable. Please try again.') from error
+        except requests.RequestException as error:
+            if attempt == 2:
+                raise StorageError('Media storage is unavailable. Please try again.') from error
+        except OSError as error:
+            raise StorageError('The local media file could not be read.') from error
 
 def path_for(key):
     path = local_path(key)

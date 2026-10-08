@@ -20,7 +20,7 @@ Run this on the computer that contains the existing `instance/media` files:
 .venv/bin/python -m flask --app wsgi sync-media-to-bunny
 ```
 
-The command uploads every referenced media file and manuscript, preserving storage keys and chapter order. It reports missing local files and exits unsuccessfully if any remain. It does not delete source recordings. Run it again safely if a connection fails.
+The command uploads every referenced media file and manuscript, preserving storage keys and chapter order. It reports missing local files and exits unsuccessfully if any remain. It does not delete source recordings. Uploads automatically retry interrupted network transfers up to three times, reopening the file from the beginning. Run the command again safely if a connection still fails.
 
 Add the same three Bunny environment variables to your **Render web service → Environment**, then redeploy. `.env` is private and is not pushed to GitHub. Render and your local app must also use the same Neon `DATABASE_URL` so their file references agree.
 
