@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from ..extensions import db, limiter
 from ..models import PurchaseEntitlement, Audiobook, MediaAsset, ListeningProgress, AnalyticsEvent
 from ..services.access_service import normalize_email, consume_magic_link, has_access, media_token, verify_media_token
-from ..services.email_service import queue_access_email
+from ..services.email_service import queue_access_email, deliver_safely
 from ..services.media_service import media_path
 
 bp = Blueprint('library', __name__)
@@ -16,8 +16,9 @@ def index():
             email = normalize_email(request.form.get('email'))
             # Same response regardless of purchase state to avoid email enumeration.
             if db.session.scalar(db.select(PurchaseEntitlement.id).where(PurchaseEntitlement.email == email, PurchaseEntitlement.active.is_(True))):
-                queue_access_email(email)
+                message = queue_access_email(email)
                 db.session.commit()
+                deliver_safely(message.id)
             flash('If this email has purchases, a listening link will arrive shortly. It expires in 15 minutes.', 'success')
             return redirect(url_for('library.index'))
         except ValueError as error:
@@ -31,13 +32,17 @@ def index():
 @limiter.limit('30 per minute')
 def verify(token):
     # GET does not consume a token: email security scanners can safely follow it.
-    return render_template('access.html', token=token)
+    return render_template('access.html', token=token, download_id=request.args.get('download', ''))
 
 @bp.post('/library/access/<token>')
 @limiter.limit('30 per minute')
 def redeem(token):
+    from ..services.identity_service import resolve_id
+    download_id = resolve_id('audiobook', request.form.get('download')) if request.form.get('download') else None
     email = consume_magic_link(token)
     if not email:
+        if download_id and has_access(session.get('listener_email'), download_id):
+            return redirect(url_for('library.download', book_id=download_id))
         flash('That link has expired or was already used. Request a new one below.', 'error')
         return redirect(url_for('library.index'))
     cart = session.get('cart', [])
@@ -45,7 +50,7 @@ def redeem(token):
     session['cart'] = cart
     session['listener_email'] = email
     session.permanent = True
-    return redirect(url_for('library.index'))
+    return redirect(url_for('library.download', book_id=download_id)) if download_id else redirect(url_for('library.index'))
 
 @bp.post('/library/logout')
 def logout():

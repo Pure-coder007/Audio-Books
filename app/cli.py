@@ -57,19 +57,21 @@ def register_commands(app):
 
     @app.cli.command('deliver-emails')
     def deliver_emails():
-        if not app.config['MAIL_HOST']:
-            raise click.ClickException('Configure MAIL_HOST before sending email.')
-        # Reissue links near expiry before delivery, e.g. after an SMTP outage.
-        from .services.access_service import issue_magic_link
-        from datetime import timedelta
-        queued = db.session.scalars(db.select(EmailDelivery).where(EmailDelivery.status == 'queued')).all()
-        for email in queued:
-            if email.created_at < now() - timedelta(minutes=5):
-                link = issue_magic_link(email.recipient)
-                email.body = f'Open your MyAudioShelf purchases using this single-use link within 15 minutes:\n\n{link}\n\nIf it expires, request a new link from My Purchases.'
-                email.created_at = now()
-        db.session.commit()
-        click.echo(f'Delivered {deliver_pending()} queued emails.')
+        from .services.email_service import configured
+        if not configured():
+            raise click.ClickException('Configure RESEND_API_KEY and RESEND_FROM_EMAIL, or SMTP, before sending email.')
+        click.echo(f'Submitted {deliver_pending()} queued emails to the email provider.')
+
+    @app.cli.command('check-email-config')
+    def check_email_config():
+        """Check email settings without sending messages or displaying secrets."""
+        from .services.email_service import configured
+        if not configured():
+            raise click.ClickException('Set RESEND_API_KEY and RESEND_FROM_EMAIL (verified domain), or configure SMTP.')
+        if not app.config['BASE_URL'].startswith('https://') and app.config['PRODUCTION']:
+            raise click.ClickException('Production BASE_URL must be your public HTTPS website URL.')
+        click.echo('Email configuration ready: ' + ('Resend' if app.config.get('RESEND_API_KEY') else 'SMTP'))
+        click.echo('Sender domain verification and inbox delivery still need a payment test.')
 
     @app.cli.command('sync-media-to-bunny')
     def sync_media():

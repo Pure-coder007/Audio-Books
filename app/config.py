@@ -40,3 +40,7 @@ class Config:
     BUNNY_STORAGE_ZONE = os.environ.get('BUNNY_STORAGE_ZONE', '').strip()
     BUNNY_STORAGE_ACCESS_KEY = os.environ.get('BUNNY_STORAGE_ACCESS_KEY', '').strip()
     BUNNY_STORAGE_ENDPOINT = (os.environ.get('BUNNY_STORAGE_ENDPOINT') or 'https://storage.bunnycdn.com').rstrip('/')
+
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '').strip()
+    RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', '').strip()
+    RESEND_REPLY_TO = os.environ.get('RESEND_REPLY_TO', '').strip()

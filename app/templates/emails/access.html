@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>{{ subject }}</title>
+<style>@media only screen and (max-width:600px){.outer{padding:12px 6px!important}.pad{padding-left:24px!important;padding-right:24px!important}.hero-title{font-size:34px!important;line-height:39px!important}.book-title{font-size:18px!important}.cover{width:64px!important;height:96px!important}.book-info{padding-left:16px!important}}</style></head>
+<body style="margin:0;padding:0;background:#f0f0e9;color:#203628;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%">
+<div style="display:none;font-size:1px;line-height:1px;color:#f0f0e9;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">{{ 'Payment confirmed. Your audiobooks are ready to download and enjoy.' if order else 'Your secure link to the stories on your listening shelf.' }}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0f0e9"><tr><td class="outer" align="center" style="padding:36px 16px">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #dce1d6;border-radius:20px;overflow:hidden">
+<tr><td class="pad" style="background:#14251b;padding:25px 40px 20px;border-bottom:1px solid #344631"><a href="{{ base_url }}" style="text-decoration:none"><img src="{{ logo_url }}" width="156" alt="MyAudioShelf — Audiobooks only" style="display:block;border:0;width:156px;max-width:100%;height:auto"></a></td></tr>
+<tr><td class="pad" style="background:#14251b;padding:28px 40px 38px">
+<p style="margin:0 0 18px;font-size:11px;letter-spacing:2.4px;font-weight:bold;color:#c7f000">{{ 'PAYMENT CONFIRMED · DOWNLOAD READY' if order else 'YOUR PERSONAL LISTENING SHELF' }}</p>
+<h1 class="hero-title" style="margin:0 0 18px;color:#f9faf1;font-size:43px;line-height:48px;letter-spacing:-1.5px;font-weight:bold">{{ 'Your next story' if order else 'Welcome back' }}<br>{{ 'starts here.' if order else 'to your shelf.' }}</h1>
+<p style="margin:0;color:#bdcabb;font-size:16px;line-height:25px">{{ 'Thank you for your purchase. Your books are ready to keep, listen to and enjoy at your own pace.' if order else 'The stories you love are waiting. Open your secure link to listen online or download your audiobooks.' }}</p>
+</td></tr>
+<tr><td class="pad" style="padding:30px 40px 8px">
+{% if order %}<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:11px;color:#68796b;letter-spacing:1px">ORDER {{ order.reference }}</td><td align="right" style="font-size:12px;color:#68796b">{{ order.date }}</td></tr></table>{% endif %}
+<h2 style="margin:22px 0 8px;font-size:23px;letter-spacing:-.6px;color:#203628">{{ 'Made for your headphones.' if books else 'Your stories, all together.' }}</h2>
+<p style="margin:0 0 24px;color:#68796b;font-size:14px;line-height:22px">No account or password needed. Just open your secure link.</p>
+{% for book in books %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e4e9dd"><tr><td width="78" valign="top" style="padding:22px 0"><img class="cover" src="{{ book.cover }}" width="78" height="117" alt="Cover of {{ book.title }}" style="display:block;width:78px;height:117px;border-radius:5px;border:1px solid #e4e9dd;object-fit:cover"></td><td class="book-info" valign="top" style="padding:23px 0 22px 22px">
+<p style="margin:0 0 7px;font-size:10px;font-weight:bold;letter-spacing:1.5px;color:#7c8c73">AUDIOBOOK{% if book.chapters %} · {{ book.chapters }} CHAPTERS{% endif %}</p>
+<h3 class="book-title" style="margin:0 0 6px;font-size:21px;line-height:26px;color:#203628;letter-spacing:-.4px">{{ book.title }}</h3>
+<p style="margin:0 0 12px;font-size:13px;line-height:20px;color:#68796b">{{ book.author }}{% if book.duration %} · {{ book.duration }}{% endif %}</p>
+{% if book.price %}<p style="margin:0 0 12px;font-size:14px;color:#203628;font-weight:bold">{{ book.price }}</p>{% endif %}
+<a href="{{ book.download }}" style="font-size:13px;line-height:22px;font-weight:bold;color:#2b5935;text-decoration:underline">{{ 'Download all chapters' if book.chapters else 'Download audiobook' }} &darr;</a>
+</td></tr></table>
+{% endfor %}
+{% if order %}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e4e9dd"><tr><td style="padding:20px 0;font-size:14px;color:#68796b">Total paid</td><td align="right" style="padding:20px 0;font-size:23px;font-weight:bold;color:#203628">{{ order.total }}</td></tr></table>{% endif %}
+</td></tr>
+<tr><td class="pad" style="padding:14px 40px 32px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" bgcolor="#c7f000" style="border-radius:9px"><a href="{{ access_url }}" style="display:block;padding:18px 20px;border:1px solid #c7f000;border-radius:9px;font-size:15px;line-height:20px;font-weight:bold;color:#14251b;text-decoration:none;mso-padding-alt:18px 20px">Open my audiobooks &rarr;</a></td></tr></table>
+<p style="margin:16px 0 0;font-size:12px;line-height:19px;color:#68796b;text-align:center">Your secure link expires in {{ expiry_minutes }} minutes and can be used once.<br>Need another? <a href="{{ library_url }}" style="color:#2b5935;text-decoration:underline">Request a fresh link anytime.</a></p>
+</td></tr>
+<tr><td class="pad" style="padding:25px 40px;background:#f5f7ef;border-top:1px solid #e4e9dd">
+<h3 style="margin:0 0 10px;font-size:15px;color:#203628">One book. Every chapter.</h3><p style="margin:0;font-size:13px;line-height:21px;color:#68796b">Chapter-based audiobooks download together in an ordered ZIP. Open your shelf to stream, resume listening or download again while your purchase is active.</p>
+</td></tr>
+<tr><td class="pad" style="padding:26px 40px 30px;font-size:12px;line-height:20px;color:#7d897c">
+<p style="margin:0 0 12px;color:#203628;font-weight:bold">Good stories. Great voices. A whole new way to read.</p>
+<p style="margin:0 0 15px">Need a hand? <a href="{{ contact_url }}" style="color:#2b5935;text-decoration:underline">Contact MyAudioShelf</a>.</p>
+<p style="margin:0 0 8px;font-size:11px;line-height:18px">This message gives access to your purchases. Keep the link private. If you didn’t request it, you can safely ignore it.</p>
+<a href="{{ base_url }}" style="color:#68796b;text-decoration:none">MyAudioShelf</a> &nbsp;·&nbsp; <a href="{{ base_url }}/privacy" style="color:#68796b;text-decoration:underline">Privacy</a>
+</td></tr></table>
+<p style="margin:18px 0 0;font-size:11px;line-height:18px;color:#84907f">Your books, your pace.</p>
+</td></tr></table></body></html>

@@ -3,7 +3,7 @@ from flask import current_app
 from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models import Order, OrderItem, PurchaseEntitlement, StripeEvent, PaymentRefund, now
-from .email_service import queue_access_email
+from .email_service import queue_access_email, deliver_safely
 
 class PaymentMismatch(ValueError):
     pass
@@ -44,6 +44,7 @@ def handle_event(event):
         'checkout.session.async_payment_failed', 'checkout.session.expired', 'charge.refunded'}
     if kind not in accepted:
         return 'ignored'
+    purchase_email = None
     try:
         db.session.add(StripeEvent(id=event['id'], event_type=kind))
         db.session.flush()
@@ -94,10 +95,12 @@ def handle_event(event):
                             entitlement.order_id = order.id
                         else:
                             db.session.add(PurchaseEntitlement(email=order.email, book_id=item.book_id, order_id=order.id))
-                    queue_access_email(order.email)
+                    purchase_email = queue_access_email(order.email, order)
             elif order.status == 'pending':
                 order.status = 'failed' if kind.endswith('failed') else 'expired'
         db.session.commit()
+        if purchase_email:
+            deliver_safely(purchase_email.id)
         return 'processed'
     except IntegrityError:
         db.session.rollback()

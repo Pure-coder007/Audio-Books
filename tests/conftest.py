@@ -13,7 +13,7 @@ def app(tmp_path):
         'SQLALCHEMY_DATABASE_URI':'sqlite://', 'MEDIA_ROOT':str(tmp_path/'media'),
         'WTF_CSRF_ENABLED':False, 'RATELIMIT_ENABLED':False, 'DEMO_MODE':False,
         'PRODUCTION':False, 'STRIPE_SECRET_KEY':'sk_test_fixture', 'STRIPE_WEBHOOK_SECRET':'whsec_fixture',
-        'MAIL_HOST':'', 'BASE_URL':'http://localhost', 'BUNNY_STORAGE_ZONE':'', 'BUNNY_STORAGE_ACCESS_KEY':'', 'BUNNY_STORAGE_ENDPOINT':'https://storage.bunnycdn.com'})
+        'MAIL_HOST':'', 'RESEND_API_KEY':'', 'BASE_URL':'http://localhost', 'BUNNY_STORAGE_ZONE':'', 'BUNNY_STORAGE_ACCESS_KEY':'', 'BUNNY_STORAGE_ENDPOINT':'https://storage.bunnycdn.com'})
     with app.app_context():
         db.create_all()
         author=Author(name='Test Author', slug='test-author')

@@ -75,13 +75,13 @@ stripe listen --forward-to http://127.0.0.1:5000/checkout/webhook
 
 Use the printed webhook signing secret in your local configuration and restart Flask. Purchase a real uploaded test title with Stripe test mode. Demo titles intentionally do not enter Stripe. Browser success-page arrival alone never grants access.
 
-Configure SMTP with the `MAIL_*` variables and run:
+Configure Resend with `RESEND_API_KEY` and `RESEND_FROM_EMAIL` on your verified sending domain (or SMTP with the `MAIL_*` variables), then run:
 
 ```sh
 .venv/bin/python -m flask --app wsgi deliver-emails
 ```
 
-Schedule that command every minute using a **single** scheduler job. The durable outbox avoids coupling payment confirmation to SMTP availability. Delayed messages receive fresh access links before delivery. Without SMTP, queued emails can be inspected by the owner in the development outbox at `/admin/outbox`; that screen is disabled in production. No real Stripe payment or external email has been sent during this build.
+Schedule that command every minute using a **single** scheduler job sharing the web service's PostgreSQL database. The durable outbox keeps payment confirmation independent of email provider availability. Delayed messages receive fresh access links before delivery. Queued emails can be inspected by the owner in the development outbox at `/admin/outbox`; that screen is disabled in production. See [Resend and Render setup](docs/RESEND_RENDER_SETUP.md) for deployment settings and a payment delivery test.
 
 [Stripe webhook documentation](https://docs.stripe.com/webhooks) explains signature verification and delivery retries. [Flask application factories](https://flask.palletsprojects.com/en/stable/patterns/appfactories/) informs the modular app structure. The visual reference was [NaijaHub](https://www.naijahub.ai/), adapted without its content, sidebar or section numbering.
 
@@ -160,3 +160,7 @@ Company pages now use editorial sections rather than card grids. Mobile text is 
 Internal record IDs and their foreign keys now use UUIDs (32-character hexadecimal representation). Existing integer IDs migrate without deleting records; `legacy_uuid_map` preserves old URLs and cart/staff sessions. Stripe event/payment identifiers keep their original provider format. Run `.venv/bin/python -m flask --app wsgi db upgrade` locally; Render runs this before workers start. Take a database backup before this one-way migration; downgrading requires restoring that backup.
 
 Staff sign in at `/admin/login`, using the credentials in the database selected by `DATABASE_URL`. A staff account in SQLite may have a different password from the account in Neon. Email matching ignores capitalization and surrounding spaces. To choose a new password without sharing it, run `.venv/bin/python -m flask --app wsgi reset-admin-password` and enter the email and password when prompted. Previous staff sessions are invalidated on reset. Customer `/login` is separate and cannot authenticate a staff account.
+
+### Resend purchase emails
+
+Verified payments queue branded receipts with secure audiobook download links. Configure `RESEND_API_KEY` and `RESEND_FROM_EMAIL`, then run `python -m flask --app wsgi check-email-config`. Set up a minute-by-minute `deliver-emails` retry job sharing the web database. See [Resend and Render setup](docs/RESEND_RENDER_SETUP.md) for the full environment list, sender verification, Stripe events and delivery checks.

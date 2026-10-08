@@ -188,6 +188,14 @@ class AnalyticsEvent(db.Model):
     created_at = db.Column(db.DateTime, default=now)
 
 class EmailDelivery(db.Model):
+    html_body = db.Column(db.Text)
+    order_id = db.Column(db.String(32), db.ForeignKey('order.id'))
+    link_expires_at = db.Column(db.DateTime)
+    delivery_key = db.Column(db.String(32), nullable=False, default=uid)
+    claimed_until = db.Column(db.DateTime)
+    provider_message_id = db.Column(db.String(255))
+    sent_at = db.Column(db.DateTime)
+    last_error = db.Column(db.String(100))
     id = db.Column(db.String(32), primary_key=True, default=uid)
     recipient = db.Column(db.String(254), nullable=False)
     subject = db.Column(db.String(200), nullable=False)
