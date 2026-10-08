@@ -19,10 +19,10 @@ def start():
         if any(b.is_demo for b in books):
             flash('These are sample titles. Demo checkout never charges you or grants a purchase.', 'info')
             return render_template('checkout_demo.html', books=books)
-        from ..services.media_service import media_path
+        from ..services.storage_service import exists
         for book in books:
             assets = [chapter.media for chapter in book.chapters] if book.chapters else [book.asset('full')]
-            if not assets or any(asset is None or not media_path(asset).is_file() for asset in assets):
+            if not assets or any(asset is None or not exists(asset.storage_key) for asset in assets):
                 raise ValueError('The complete audio for a selected book is not ready. Please try again later or contact our team.')
         if not current_app.config['STRIPE_SECRET_KEY']:
             raise ValueError('Checkout is not available yet. Please try again later.')

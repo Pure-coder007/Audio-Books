@@ -21,7 +21,7 @@ def register_commands(app):
         email = normalize_email(email)
         if len(password) < 12:
             raise click.ClickException('Use a password of at least 12 characters.')
-        if db.session.scalar(db.select(AdminUser).where(AdminUser.email == email)):
+        if db.session.scalar(db.select(AdminUser).where(db.func.lower(AdminUser.email) == email)):
             raise click.ClickException('That email is already registered.')
         db.session.add(AdminUser(email=email, password_hash=generate_password_hash(password), role=role))
         db.session.commit()
@@ -32,7 +32,7 @@ def register_commands(app):
     @click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True)
     def reset_password(email, password):
         from .models import uid, AuditLog
-        user = db.session.scalar(db.select(AdminUser).where(AdminUser.email == normalize_email(email)))
+        user = db.session.scalar(db.select(AdminUser).where(db.func.lower(AdminUser.email) == normalize_email(email)))
         if not user or len(password) < 12:
             raise click.ClickException('Staff account must exist; password must have at least 12 characters.')
         user.password_hash = generate_password_hash(password)
@@ -70,6 +70,30 @@ def register_commands(app):
                 email.created_at = now()
         db.session.commit()
         click.echo(f'Delivered {deliver_pending()} queued emails.')
+
+    @app.cli.command('sync-media-to-bunny')
+    def sync_media():
+        """Upload existing recordings and attachments into private Bunny Storage."""
+        from .models import MediaAsset, ProductionEnquiry
+        from .services.storage_service import enabled, upload, local_path, StorageError
+        if not enabled():
+            raise click.ClickException('Configure BUNNY_STORAGE_ZONE and BUNNY_STORAGE_ACCESS_KEY first.')
+        keys = set(db.session.scalars(db.select(MediaAsset.storage_key)).all())
+        keys.update(db.session.scalars(db.select(ProductionEnquiry.attachment_key).where(ProductionEnquiry.attachment_key.is_not(None))).all())
+        uploaded = missing = 0
+        for key in sorted(keys):
+            if not local_path(key).is_file():
+                missing += 1
+                continue
+            try:
+                upload(key)
+            except StorageError as error:
+                raise click.ClickException(str(error)) from error
+            uploaded += 1
+            click.echo(f'Uploaded {uploaded} of {len(keys)} files.')
+        click.echo(f'Finished: {uploaded} uploaded; {missing} unavailable locally.')
+        if missing:
+            raise click.ClickException('Some files were unavailable locally. Run from the computer containing the original recordings.')
 
     @app.cli.command('cleanup-access')
     def cleanup_access():

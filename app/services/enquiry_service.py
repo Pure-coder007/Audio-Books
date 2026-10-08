@@ -40,4 +40,6 @@ def save_manuscript(upload):
     key='manuscript-'+uuid4().hex+suffix
     root=Path(current_app.config['MEDIA_ROOT']);root.mkdir(parents=True,exist_ok=True)
     (root/key).write_bytes(content)
+    from .storage_service import upload as upload_remote
+    upload_remote(key)
     return key,name

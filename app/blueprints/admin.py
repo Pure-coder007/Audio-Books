@@ -12,6 +12,7 @@ from ..services.email_service import queue_access_email
 from .main import visible_books
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
+DUMMY_HASH = generate_password_hash('unused-staff-password')
 
 def slugify(value):
     return re.sub(r'[^a-z0-9]+', '-', value.lower()).strip('-')[:170]
@@ -26,8 +27,10 @@ def text(field, limit=180):
 @limiter.limit('10 per 15 minutes', methods=['POST'])
 def login():
     if request.method == 'POST':
-        user = db.session.scalar(db.select(AdminUser).where(AdminUser.email == text('email', 254).lower()))
-        if user and user.active and check_password_hash(user.password_hash, request.form.get('password', '')):
+        user = db.session.scalar(db.select(AdminUser).where(db.func.lower(AdminUser.email) == text('email', 254).lower()))
+        password = request.form.get('password', '')
+        valid = check_password_hash(user.password_hash if user else DUMMY_HASH, password[:1024])
+        if user and user.active and valid and len(password) <= 1024:
             session.clear()
             session['admin_id'] = user.id
             session['admin_version'] = user.session_version
@@ -71,7 +74,7 @@ def books():
     return render_template('admin/books.html', books=page.items, page=page, q=q)
 
 @bp.route('/books/new', methods=['GET', 'POST'])
-@bp.route('/books/<int:book_id>/edit', methods=['GET', 'POST'])
+@bp.route('/books/<string:book_id>/edit', methods=['GET', 'POST'])
 @admin_required('owner', 'editor')
 def edit_book(book_id=None):
     book = db.get_or_404(Audiobook, book_id) if book_id else None
@@ -111,7 +114,7 @@ def edit_book(book_id=None):
                 raise ValueError('Enter a valid duration.')
             for flag in ['saleable', 'featured', 'hero', 'original', 'children', 'homepage_visible']:
                 setattr(book, flag, flag in request.form)
-            ids = [int(i) for i in request.form.getlist('categories')]
+            ids = request.form.getlist('categories')
             book.categories = db.session.scalars(db.select(Category).where(Category.id.in_(ids))).all()
             db.session.flush()
             for kind in ['cover', 'trailer', 'full', 'compare_plain', 'compare_immersive']:
@@ -159,7 +162,7 @@ def edit_book(book_id=None):
     categories = db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()
     return render_template('admin/edit_book.html', book=book, categories=categories)
 
-@bp.get('/books/<int:book_id>/preview')
+@bp.get('/books/<string:book_id>/preview')
 @admin_required()
 def preview(book_id):
     book = db.get_or_404(Audiobook, book_id)
@@ -178,7 +181,7 @@ def preview_media(media_id):
     response.headers['Cache-Control'] = 'private, no-store'
     return response
 
-@bp.post('/chapters/<int:chapter_id>/delete')
+@bp.post('/chapters/<string:chapter_id>/delete')
 @admin_required('owner', 'editor')
 def delete_chapter(chapter_id):
     chapter = db.get_or_404(Chapter, chapter_id)
@@ -195,7 +198,7 @@ def delete_chapter(chapter_id):
     db.session.commit()
     return redirect(url_for('admin.edit_book', book_id=book.id))
 
-@bp.post('/chapters/<int:chapter_id>/move')
+@bp.post('/chapters/<string:chapter_id>/move')
 @admin_required('owner', 'editor')
 def move_chapter(chapter_id):
     chapter = db.get_or_404(Chapter, chapter_id)
@@ -247,7 +250,7 @@ def order_detail(order_id):
     entitlements = db.session.scalars(db.select(PurchaseEntitlement).where(PurchaseEntitlement.order_id == order.id)).all()
     return render_template('admin/order.html', order=order, entitlements=entitlements)
 
-@bp.post('/entitlements/<int:entitlement_id>')
+@bp.post('/entitlements/<string:entitlement_id>')
 @admin_required('owner', 'support')
 def entitlement(entitlement_id):
     entitlement = db.get_or_404(PurchaseEntitlement, entitlement_id)
@@ -276,7 +279,8 @@ def entitlement(entitlement_id):
 @admin_required('owner', 'editor', 'support')
 def enquiries():
     if request.method == 'POST':
-        item = db.get_or_404(ProductionEnquiry, request.form.get('id', type=int))
+        from ..services.identity_service import resolve_id
+        item = db.get_or_404(ProductionEnquiry, resolve_id('production_enquiry', request.form.get('id')))
         state = text('status', 30)
         if state not in {'new', 'reviewing', 'contacted', 'accepted', 'closed'}:
             abort(400)
@@ -310,7 +314,7 @@ def staff():
     page = db.paginate(db.select(AdminUser).order_by(AdminUser.email), per_page=10, error_out=False)
     return render_template('admin/staff.html', staff=page.items, page=page)
 
-@bp.post('/staff/<int:user_id>/toggle')
+@bp.post('/staff/<string:user_id>/toggle')
 @admin_required('owner')
 def toggle_staff(user_id):
     user = db.get_or_404(AdminUser, user_id)
@@ -337,13 +341,14 @@ def outbox():
     return render_template('admin/outbox.html', page=page)
 
 
-@bp.get('/enquiries/<int:enquiry_id>/manuscript')
+@bp.get('/enquiries/<string:enquiry_id>/manuscript')
 @admin_required('owner','editor')
 def manuscript(enquiry_id):
     from pathlib import Path
     item=db.get_or_404(ProductionEnquiry,enquiry_id)
     if not item.attachment_key:abort(404)
-    path=Path(current_app.config['MEDIA_ROOT']) / item.attachment_key
+    from ..services.storage_service import path_for
+    path=path_for(item.attachment_key)
     if not path.is_file():abort(404)
     response=send_file(path,as_attachment=True,download_name=item.attachment_name)
     response.headers['Cache-Control']='private, no-store'

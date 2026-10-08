@@ -52,7 +52,7 @@ def logout():
     session.pop('listener_email', None)
     return redirect(url_for('library.index'))
 
-@bp.get('/library/listen/<int:book_id>')
+@bp.get('/library/listen/<string:book_id>')
 def listen(book_id):
     email = session.get('listener_email')
     if not has_access(email, book_id):
@@ -87,7 +87,7 @@ def refresh_media(media_id):
         abort(403)
     return {'url': url_for('library.stream', media_id=asset.id, token=media_token(asset.id, email))}
 
-@bp.post('/library/progress/<int:book_id>')
+@bp.post('/library/progress/<string:book_id>')
 @limiter.limit('30 per minute')
 def save_progress(book_id):
     email = session.get('listener_email')
@@ -111,7 +111,7 @@ def save_progress(book_id):
     db.session.commit()
     return {'saved': True}
 
-@bp.get('/library/download/<int:book_id>')
+@bp.get('/library/download/<string:book_id>')
 @limiter.limit('10 per hour')
 def download(book_id):
     """A verified paid entitlement unlocks one file or every chapter in a ZIP."""

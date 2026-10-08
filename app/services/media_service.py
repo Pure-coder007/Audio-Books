@@ -11,11 +11,8 @@ from ..models import MediaAsset
 AUDIO_TYPES = {'.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.flac': 'audio/flac'}
 
 def media_path(asset):
-    base = Path(current_app.config['MEDIA_ROOT']).resolve()
-    path = (base / asset.storage_key).resolve()
-    if not path.is_relative_to(base):
-        raise ValueError('Invalid media path.')
-    return path
+    from .storage_service import path_for
+    return path_for(asset.storage_key)
 
 def store_upload(upload, book, kind):
     suffix = Path(upload.filename or '').suffix.lower()
@@ -64,6 +61,8 @@ def store_upload(upload, book, kind):
     root.mkdir(parents=True, exist_ok=True)
     storage_key = key + suffix
     (root / storage_key).write_bytes(data)
+    from .storage_service import upload as upload_remote
+    upload_remote(storage_key)
     asset = MediaAsset(book=book, kind=kind, storage_key=storage_key, mime_type=mime,
         size_bytes=len(data), duration_seconds=duration)
     db.session.add(asset)

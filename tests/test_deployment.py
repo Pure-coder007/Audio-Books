@@ -3,7 +3,7 @@ from app import create_app
 
 def test_database_error_page_does_not_query_database_again(tmp_path):
     app = create_app({'TESTING':False, 'PRODUCTION':False, 'SECRET_KEY':'test-error-rendering-key',
-        'SQLALCHEMY_DATABASE_URI':'sqlite://', 'RATELIMIT_ENABLED':False, 'DEMO_MODE':False})
+        'SQLALCHEMY_DATABASE_URI':'sqlite://', 'RATELIMIT_ENABLED':False, 'DEMO_MODE':False, 'BUNNY_STORAGE_ZONE':'', 'BUNNY_STORAGE_ACCESS_KEY':''})
     # A new database with no migrations reproduces Render's missing-table failure.
     with app.test_client() as client:
         response = client.get('/')

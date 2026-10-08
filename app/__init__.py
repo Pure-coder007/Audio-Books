@@ -32,7 +32,24 @@ def create_app(test_config=None):
             raise RuntimeError('Production BASE_URL must use HTTPS.')
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['DEMO_MODE'] = False
+    from .services.storage_service import validate_config, StorageError
+    validate_config(app.config)
+    @app.errorhandler(StorageError)
+    def storage_error(error):
+        app.logger.warning('Private media storage request failed.')
+        g.rendering_error = True
+        db.session.rollback()
+        return render_template('error.html', code=503), 503
     db.init_app(app)
+    # Establish the intended schema explicitly when using transaction poolers.
+    with app.app_context():
+        if db.engine.dialect.name == 'postgresql':
+            from sqlalchemy import event
+            @event.listens_for(db.engine, 'connect')
+            def public_schema(connection, record):
+                with connection.cursor() as cursor:
+                    cursor.execute('SET search_path TO public')
+                connection.commit()
     migrate.init_app(app, db)
     csrf.init_app(app)
     limiter.init_app(app)
@@ -56,6 +73,29 @@ def create_app(test_config=None):
     @app.before_request
     def csp_nonce():
         g.csp_nonce = secrets.token_urlsafe(16)
+    @app.before_request
+    def migrated_references():
+        from .services.identity_service import resolve_id
+        from flask import abort
+        tables = {'book_id': 'audiobook', 'chapter_id': 'chapter',
+                  'entitlement_id': 'purchase_entitlement', 'user_id': 'admin_user',
+                  'enquiry_id': 'production_enquiry', 'order_id': 'order', 'media_id': 'media_asset'}
+        for field, value in (request.view_args or {}).items():
+            if field in tables:
+                resolved = resolve_id(tables[field], value)
+                if not resolved:
+                    abort(404)
+                request.view_args[field] = resolved
+        if session.get('admin_id') is not None:
+            resolved = resolve_id('admin_user', session['admin_id'])
+            if resolved:
+                session['admin_id'] = resolved
+            else:
+                session.pop('admin_id', None)
+        if session.get('cart'):
+            session['cart'] = list(dict.fromkeys(value for old in session['cart'][:30]
+                if (value := resolve_id('audiobook', old))))
+
     @app.context_processor
     def shared():
         from .models import Category

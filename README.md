@@ -95,7 +95,7 @@ Use a Python host or VPS that supports persistent storage and scheduled jobs. Th
 - Run `python -m flask --app wsgi db upgrade` as the release step, then `create-admin` interactively.
 - Start with `python -m gunicorn --bind 0.0.0.0:8000 --workers 1 --timeout 120 wsgi:app`.
 - Terminate TLS at your reverse proxy, forward requests to Gunicorn, permit the required upload size and hide access-token URL paths from proxy access logs. The app does not blindly trust forwarded headers. `BASE_URL` is authoritative for email and payment links.
-- Persist and back up `instance/media` and the database. Full audio is served by Flask after current entitlement checks; do not expose the media directory through the web server. For larger catalogues, replace the media service with private object storage and equivalent entitlement/expiring URL behavior.
+- Persist and back up `instance/media` and the database. Full audio is served by Flask after current entitlement checks; do not expose the media directory through the web server. Private Bunny Storage is now supported; see docs/BUNNY_MEDIA_SETUP.md.
 - Schedule one `deliver-emails` worker each minute and `cleanup-access` / `cleanup-media` daily. Cleanup has a 24-hour grace period for unreferenced upload files. Monitor queued emails, webhook failures, disk space and `/health`.
 - Complete a Stripe test purchase, receive its email, listen on desktop/mobile, confirm a refund revokes access, and replace fictional/demo content before real sales.
 
@@ -153,3 +153,10 @@ Paid customers can now download their audiobook from the purchase library: full-
 Stripe Checkout reads `STRIPE_SECRET_KEY`; `STRIPE_PUBLISHABLE_KEY` is also recognised but hosted Checkout does not require browser-side key use. A verified Checkout return can immediately unlock the buyer's listening/download session, using Stripe's server response and the existing amount/currency checks. Signed webhooks remain essential for delayed payments, refunds and customers who do not return. Put `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` and the correct HTTPS `BASE_URL` in Render's environment; local `.env` stays private. Checkout blocks books whose complete recordings are missing on the server.
 
 Company pages now use editorial sections rather than card grids. Mobile text is reduced, and the hamburger menu contains the links, purchase library, cart and sound control; only the theme control stays outside alongside the brand and menu button. Homepage synthetic demonstration audio and public transcript blocks have been removed.
+
+
+### UUID identifiers and staff sign-in
+
+Internal record IDs and their foreign keys now use UUIDs (32-character hexadecimal representation). Existing integer IDs migrate without deleting records; `legacy_uuid_map` preserves old URLs and cart/staff sessions. Stripe event/payment identifiers keep their original provider format. Run `.venv/bin/python -m flask --app wsgi db upgrade` locally; Render runs this before workers start. Take a database backup before this one-way migration; downgrading requires restoring that backup.
+
+Staff sign in at `/admin/login`, using the credentials in the database selected by `DATABASE_URL`. A staff account in SQLite may have a different password from the account in Neon. Email matching ignores capitalization and surrounding spaces. To choose a new password without sharing it, run `.venv/bin/python -m flask --app wsgi reset-admin-password` and enter the email and password when prompted. Previous staff sessions are invalidated on reset. Customer `/login` is separate and cannot authenticate a staff account.

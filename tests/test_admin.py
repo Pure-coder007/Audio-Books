@@ -23,7 +23,7 @@ def test_admin_auth_required(client):
     assert client.post('/admin/books/new').status_code==302
 
 def test_admin_screens_render(admin_client):
-    for path in ['/admin/','/admin/books','/admin/books/new','/admin/books/1/edit','/admin/books/1/preview','/admin/categories','/admin/orders','/admin/enquiries','/admin/staff','/admin/audit','/admin/outbox']:
+    for path in ['/admin/','/admin/books','/admin/books/new',f"/admin/books/{admin_client.application.config['TEST_BOOK_ID']}/edit",f"/admin/books/{admin_client.application.config['TEST_BOOK_ID']}/preview",'/admin/categories','/admin/orders','/admin/enquiries','/admin/staff','/admin/audit','/admin/outbox']:
         assert admin_client.get(path).status_code==200,path
 
 def test_staff_roles_are_enforced(client,app):
@@ -103,7 +103,7 @@ def test_media_replacement_clears_obsolete_progress(admin_client,app,paid_order)
         db.session.add(ListeningProgress(email='buyer@example.com',book_id=book.id,media_id='a'*32,seconds=1));db.session.commit()
     data=metadata(app,title='Test Book',slug='test-book',author_name='Test Author')
     data['full']=(io.BytesIO(wav_bytes()),'replacement.wav')
-    assert admin_client.post('/admin/books/1/edit',data=data,content_type='multipart/form-data').status_code==302
+    assert admin_client.post(f"/admin/books/{admin_client.application.config['TEST_BOOK_ID']}/edit",data=data,content_type='multipart/form-data').status_code==302
     with app.app_context():
         assert db.session.get(MediaAsset,'a'*32) is None
         assert db.session.scalar(db.select(ListeningProgress)).media_id is None

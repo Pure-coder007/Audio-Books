@@ -84,7 +84,7 @@ def book(slug):
             'priceCurrency': book.currency.upper(), 'availability': 'https://schema.org/InStock'}}
     return render_template('book.html', book=book, related=related, book_schema=schema if not book.is_demo and book.saleable else None)
 
-@bp.post('/books/<int:book_id>/trailer-play')
+@bp.post('/books/<string:book_id>/trailer-play')
 @limiter.limit('30 per minute')
 def trailer_event(book_id):
     book = db.session.scalar(visible_books().where(Audiobook.id == book_id))

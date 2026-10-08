@@ -5,7 +5,7 @@ from ..models import Audiobook
 bp = Blueprint('cart', __name__)
 
 def cart_books():
-    ids = [i for i in session.get('cart', []) if isinstance(i, int)][:30]
+    ids = [i for i in session.get('cart', []) if isinstance(i, str)][:30]
     books = db.session.scalars(db.select(Audiobook).where(Audiobook.id.in_(ids),
         Audiobook.state == 'published', Audiobook.saleable.is_(True))).all()
     if not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG']):
@@ -21,7 +21,7 @@ def index():
         totals[book.currency] = totals.get(book.currency, 0) + book.price_minor
     return render_template('cart.html', books=books, totals=totals)
 
-@bp.post('/cart/add/<int:book_id>')
+@bp.post('/cart/add/<string:book_id>')
 def add(book_id):
     book = db.get_or_404(Audiobook, book_id)
     if book.state != 'published' or not book.saleable or (book.is_demo and not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG'])):
@@ -41,7 +41,7 @@ def add(book_id):
         return {'count': len(session.get('cart', [])), 'added': added, 'title': book.title}
     return redirect(url_for('cart.index') if request.form.get('buy_now') else url_for('main.book', slug=book.slug))
 
-@bp.post('/cart/remove/<int:book_id>')
+@bp.post('/cart/remove/<string:book_id>')
 def remove(book_id):
     session['cart'] = [i for i in session.get('cart', []) if i != book_id]
     return redirect(url_for('cart.index'))

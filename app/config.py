@@ -36,3 +36,7 @@ class Config:
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
     MEDIA_TOKEN_TTL = 3600
     MAGIC_LINK_TTL = 900
+
+    BUNNY_STORAGE_ZONE = os.environ.get('BUNNY_STORAGE_ZONE', '').strip()
+    BUNNY_STORAGE_ACCESS_KEY = os.environ.get('BUNNY_STORAGE_ACCESS_KEY', '').strip()
+    BUNNY_STORAGE_ENDPOINT = (os.environ.get('BUNNY_STORAGE_ENDPOINT') or 'https://storage.bunnycdn.com').rstrip('/')
