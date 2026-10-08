@@ -19,6 +19,11 @@ def start():
         if any(b.is_demo for b in books):
             flash('These are sample titles. Demo checkout never charges you or grants a purchase.', 'info')
             return render_template('checkout_demo.html', books=books)
+        from ..services.media_service import media_path
+        for book in books:
+            assets = [chapter.media for chapter in book.chapters] if book.chapters else [book.asset('full')]
+            if not assets or any(asset is None or not media_path(asset).is_file() for asset in assets):
+                raise ValueError('The complete audio for a selected book is not ready. Please try again later or contact our team.')
         if not current_app.config['STRIPE_SECRET_KEY']:
             raise ValueError('Checkout is not available yet. Please try again later.')
         order = create_order(email, books)
@@ -38,8 +43,17 @@ def success():
     order = db.session.get(Order, session.get('pending_order')) if session.get('pending_order') else None
     if order and order.stripe_session_id != request.args.get('session_id'):
         order = None
+    if order and order.status == 'pending' and current_app.config['STRIPE_SECRET_KEY']:
+        try:
+            verified = stripe.checkout.Session.retrieve(order.stripe_session_id, api_key=current_app.config['STRIPE_SECRET_KEY'])
+            if verified.get('payment_status') == 'paid':
+                handle_event({'id': 'return-verified-' + verified['id'], 'type': 'checkout.session.completed', 'data': {'object': dict(verified)}})
+        except (stripe.StripeError, PaymentMismatch):
+            current_app.logger.warning('Checkout return could not verify payment; awaiting webhook.')
     if order and order.status == 'paid':
         session['cart'] = []
+        session['listener_email'] = order.email
+        session.permanent = True
     return render_template('checkout_success.html', order=order)
 
 @bp.post('/checkout/webhook')

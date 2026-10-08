@@ -25,7 +25,7 @@ Newsletter first names are stored alongside consent-based email registration. Th
 
 ## Audio and analytics
 
-Available production comparison assets take priority; otherwise the bundled demonstration recordings are explicitly labelled. Native accessible comparison players support play, pause, progress and volume, pause other audio on playback, and expose a transcript for bundled recordings. The existing listening player retains speed, chapters and progress.
+Available production comparison assets take priority; otherwise the bundled demonstration recordings are explicitly labelled. Native comparison players are shown only for actual paired production assets. Bundled synthetic demonstrations and transcript blocks are no longer shown on public pages. The existing listening player retains speed, chapters and progress.
 
 First-party aggregate page views, starts/completions, author submissions and contact submissions are recorded without introducing advertising cookies. Dashboard counts show page views, completions and contacts. These are event counts, not unique visitors or verified conversion rates. Geographic reporting, comprehensive device reporting and an external analytics dashboard remain future integrations. Static demonstration audio is counted in aggregate events.
 

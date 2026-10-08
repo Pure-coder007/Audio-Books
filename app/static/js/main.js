@@ -311,3 +311,5 @@ document.querySelectorAll('audio').forEach(audio=>{
   audio.addEventListener('play',()=>{if(!audio.dataset.engagementStarted){audio.dataset.engagementStarted='true';postJSON('/engagement',{kind:'audio_start'}).catch(()=>{});}});
   audio.addEventListener('ended',()=>{postJSON('/engagement',{kind:'audio_complete'}).catch(()=>{});delete audio.dataset.engagementStarted;});
 });
+
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&toggle?.getAttribute('aria-expanded')==='true'){toggle.click();toggle.focus();}});
