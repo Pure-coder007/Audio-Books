@@ -8,7 +8,7 @@
  <a class="cover-wrap" href="{{ url_for('main.book', slug=book.slug) }}"><img src="{{ book.cover_url }}" alt="{{ book.title }} cover" width="360" height="540" loading="lazy"><span class="cover-cta">Discover this story ↗</span></a>
  <div class="book-card-info"><div class="book-meta"><span>{{ book.production_style }}</span><span>{{ book.duration_label }}</span></div>
  <h3><a href="{{ url_for('main.book', slug=book.slug) }}">{{ book.title }}</a></h3><p class="book-author">{{ book.author.name }}</p>
- <div class="card-bottom"><strong>{{ book.price_minor|money(book.currency) if book.saleable else 'Coming soon' }}</strong><div class="card-controls">{{ trailer(book, 'Preview') }}{% if book.saleable %}<form data-cart-add data-book-title="{{ book.title }}" method="post" action="{{ url_for('cart.add', book_id=book.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="card-cart-button" aria-label="Add {{ book.title }} to cart" title="Add to cart">{{ cart_icon() }}</button></form>{% endif %}</div></div>
+ <div class="card-bottom"><strong>{{ book.price_minor|money(book.currency) if book.price_minor > 0 else 'Price pending' }}</strong><div class="card-controls">{{ trailer(book, 'Preview') }}{% if book.saleable %}<form data-cart-add data-book-title="{{ book.title }}" method="post" action="{{ url_for('cart.add', book_id=book.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="card-cart-button" aria-label="Add {{ book.title }} to cart" title="Add to cart">{{ cart_icon() }}</button></form>{% endif %}</div></div>
 </div></article>
 {% endmacro %}
 {% macro book_grid(books) %}<div class="book-grid">{% for book in books %}{{ book_card(book) }}{% endfor %}</div>{% endmacro %}

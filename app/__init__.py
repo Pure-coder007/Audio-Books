@@ -109,7 +109,7 @@ def create_app(test_config=None):
     def with_view_args(args):
         return {**args, **(request.view_args or {})}
     @app.template_filter('money')
-    def money(value, currency='ngn'):
+    def money(value, currency='gbp'):
         symbols = {'ngn': '₦', 'usd': '$', 'gbp': '£', 'eur': '€'}
         return symbols.get(currency, currency.upper() + ' ') + f'{value / 100:,.2f}'.removesuffix('.00')
     @app.after_request

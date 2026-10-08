@@ -1015,6 +1015,26 @@ summary:focus-visible {
     color: var(--muted);
 }
 
+.developer-credit {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--muted);
+}
+
+.site-footer .developer-credit .developer-credit-link {
+    display: inline;
+    color: #a67c00;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+html[data-color-mode=dark] .site-footer .developer-credit .developer-credit-link {
+    color: #e7bd55;
+}
+
 .page-shell {
     padding-block: 45px 85px;
     min-height: 55vh;
@@ -1847,6 +1867,32 @@ td small,
 .editor-form label {
     margin-bottom: 18px;
 }
+
+.field-error {
+    display: block;
+    color: #a52d29;
+    font-size: 13px;
+    margin-top: 7px;
+}
+
+.editor-form [aria-invalid="true"],
+.admin-content [aria-invalid="true"] {
+    border: 2px solid #a52d29;
+}
+
+.form-error-summary {
+    border: 2px solid #a52d29;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.form-error-summary h2 { font-size: 20px; margin-top: 0; }
+.form-error-summary li { margin: 8px 0; }
+.form-error-summary a { text-decoration: underline; }
+html[data-color-mode=dark] .field-error { color: #ffaaa4; }
+html[data-color-mode=dark] .admin-content [aria-invalid="true"],
+html[data-color-mode=dark] .form-error-summary { border-color: #ffaaa4; }
+.editor-form [id], .stack-form [id] { scroll-margin-top: calc(var(--nav-height) + 24px); }
 
 .editor-form input,
 .editor-form textarea,

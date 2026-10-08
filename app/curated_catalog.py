@@ -18,7 +18,7 @@ def restore(app):
         category=Category(name='Faith & Spirituality',slug='faith-and-spirituality',position=8);db.session.add(category)
     book=db.session.scalar(db.select(Audiobook).where(Audiobook.slug==SLUG))
     if not book:
-        book=Audiobook(slug=SLUG,title='5000 Names of God',author=author,categories=[category],synopsis='An audiobook by David Mozie exploring the names and attributes of God.',language='English',production_style='Immersive',state='published',saleable=False,featured=True,hero=True,homepage_visible=True,duration_minutes=208,price_minor=0,published_at=now())
+        book=Audiobook(slug=SLUG,title='5000 Names of God',author=author,categories=[category],synopsis='An audiobook by David Mozie exploring the names and attributes of God.',language='English',production_style='Immersive',state='published',saleable=False,featured=True,hero=True,homepage_visible=True,duration_minutes=208,price_minor=0,currency='gbp',published_at=now())
         db.session.add(book)
     db.session.flush()
     source=Path(app.root_path)/'catalog_assets'/SLUG

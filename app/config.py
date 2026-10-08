@@ -18,7 +18,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BASE_URL = os.environ.get('BASE_URL', 'http://127.0.0.1:5000').rstrip('/')
     PRODUCTION = os.environ.get('APP_ENV') == 'production'
-    SAMPLE_CATALOG = os.environ.get('SAMPLE_CATALOG', os.environ.get('RENDER', 'false')).lower() == 'true'
+    SAMPLE_CATALOG = os.environ.get('SAMPLE_CATALOG', 'false').lower() == 'true'
     DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true' and not PRODUCTION
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'

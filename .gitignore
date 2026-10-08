@@ -5,3 +5,5 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .DS_Store
+# Source recordings are imported into private Bunny Storage, not deployed in Git.
+/docs/Books to add/

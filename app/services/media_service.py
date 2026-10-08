@@ -68,23 +68,25 @@ def store_upload(upload, book, kind):
     db.session.add(asset)
     return asset
 
-def publication_errors(book):
-    errors = []
-    for field in ['title', 'synopsis', 'narrator', 'language']:
+def publication_field_errors(book):
+    errors = {}
+    for field in ['title', 'synopsis', 'language']:
         if not getattr(book, field):
-            errors.append(f'{field.replace("_", " ").capitalize()} is required.')
+            errors[field] = f'{field.capitalize()} is required.'
     if not book.categories:
-        errors.append('Choose at least one genre.')
+        errors['categories'] = 'Choose at least one genre.'
     if not book.asset('cover'):
-        errors.append('Upload a cover.')
+        errors['cover'] = 'Upload a cover.'
     if not book.asset('trailer'):
-        errors.append('Upload a dedicated trailer of up to 60 seconds.')
+        errors['trailer'] = 'Upload a preview of up to 60 seconds.'
     if not book.asset('full') and not book.chapters:
-        errors.append('Upload full audio or at least one chapter.')
+        errors['full'] = 'Upload full audio or at least one chapter.'
     if book.price_minor <= 0:
-        errors.append('Set a price greater than zero.')
-    if not book.duration_minutes:
-        errors.append('Set the duration in minutes.')
+        errors['price'] = 'Set a price greater than zero in pounds.'
     if book.is_demo:
-        errors.append('Demo titles cannot be published for real sales; create your own title.')
+        errors['state'] = 'Demo titles cannot be published for real sales; create your own title.'
     return errors
+
+
+def publication_errors(book):
+    return list(publication_field_errors(book).values())

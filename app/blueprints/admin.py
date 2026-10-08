@@ -1,4 +1,5 @@
 import re
+import math
 from decimal import Decimal, InvalidOperation
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash, abort, send_file, current_app, g
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -7,7 +8,7 @@ from ..extensions import db, limiter
 from ..models import (Audiobook, Author, Category, Chapter, MediaAsset, Order, PurchaseEntitlement,
     ProductionEnquiry, AdminUser, AuditLog, AnalyticsEvent, EmailDelivery, NewsletterSubscriber, ListeningProgress, now, uid)
 from ..services.access_service import admin_required, normalize_email
-from ..services.media_service import store_upload, publication_errors, media_path
+from ..services.media_service import store_upload, publication_field_errors, media_path
 from ..services.email_service import queue_access_email
 from .main import visible_books
 
@@ -19,6 +20,12 @@ def slugify(value):
 
 def audit(action, detail):
     db.session.add(AuditLog(admin_id=g.admin.id, action=action, detail=str(detail)[:5000]))
+
+class BookValidationError(ValueError):
+    def __init__(self, errors):
+        self.errors = errors
+        super().__init__('Please correct the highlighted fields.')
+
 
 def text(field, limit=180):
     return request.form.get(field, '').strip()[:limit]
@@ -78,42 +85,61 @@ def books():
 @admin_required('owner', 'editor')
 def edit_book(book_id=None):
     book = db.get_or_404(Audiobook, book_id) if book_id else None
+    field_errors = {}
+    active_field = 'title'
     if request.method == 'POST':
         try:
             title = text('title')
-            slug = slugify(text('slug') or title)
             author_name = text('author_name', 150)
-            if not all([title, slug, author_name]):
-                raise ValueError('Title, slug and author are required.')
+            errors = {}
+            if not title:
+                errors['title'] = 'Enter the audiobook title.'
+            if not author_name:
+                errors['author_name'] = 'Enter the author name.'
+            try:
+                amount = Decimal(request.form.get('price', '0'))
+                if not amount.is_finite() or amount < 0 or amount > 10000000 or amount.as_tuple().exponent < -2:
+                    errors['price'] = 'Enter a price between £0 and £10,000,000 with at most two decimal places.'
+            except InvalidOperation:
+                errors['price'] = 'Enter a valid price in pounds, for example 14.99.'
+            style = request.form.get('production_style', book.production_style if book else 'Narrated')
+            if style not in {'Narrated', 'Immersive', 'Full cast'}:
+                errors['production_style'] = 'Choose a valid production style.'
+            state = text('state', 20)
+            if state not in {'draft', 'published', 'archived'}:
+                errors['state'] = 'Choose Draft, Published or Archived.'
+            chapter_file = request.files.get('chapter_audio')
+            if chapter_file and chapter_file.filename and not text('chapter_title'):
+                errors['chapter_title'] = 'Enter a title for the chapter audio.'
+            if text('chapter_title') and not (chapter_file and chapter_file.filename):
+                errors['chapter_audio'] = 'Select an audio file for this chapter.'
+            if errors:
+                raise BookValidationError(errors)
+            slug = book.slug if book else (slugify(title) or 'audiobook')
+            if not book and db.session.scalar(db.select(Audiobook.id).where(Audiobook.slug == slug)):
+                slug += '-' + uid()[:8]
             author = db.session.scalar(db.select(Author).where(Author.slug == slugify(author_name)))
             if not author:
                 author = Author(name=author_name, slug=slugify(author_name), bio=text('author_bio', 10000))
                 db.session.add(author)
             else:
                 author.name = author_name
-                author.bio = text('author_bio', 10000)
+                if 'author_bio' in request.form:
+                    author.bio = text('author_bio', 10000)
             if not book:
                 book = Audiobook(title=title, slug=slug, author=author)
                 db.session.add(book)
             book.title, book.slug, book.author = title, slug, author
             for field, limit in {'narrator':250, 'publisher':150, 'synopsis':20000, 'production_notes':10000,
                     'credits':10000, 'transcript':20000, 'language':60, 'age_range':40, 'seo_title':180, 'seo_description':300}.items():
-                setattr(book, field, text(field, limit))
-            book.production_style = text('production_style', 40)
-            if book.production_style not in {'Narrated', 'Immersive', 'Full cast'}:
-                raise ValueError('Choose a valid production style.')
-            book.currency = text('currency', 3).lower()
-            if book.currency not in {'ngn', 'usd', 'gbp', 'eur'}:
-                raise ValueError('Currency must be NGN, USD, GBP or EUR.')
-            amount = Decimal(request.form.get('price', '0'))
-            if not amount.is_finite() or amount < 0 or amount > 10000000 or amount.as_tuple().exponent < -2:
-                raise ValueError('Enter a price with at most two decimal places.')
+                if field in request.form:
+                    setattr(book, field, text(field, limit))
+            book.production_style = style
+            book.currency = 'gbp'
             book.price_minor = int(amount * 100)
-            book.duration_minutes = int(request.form.get('duration_minutes') or 0)
-            if not 0 <= book.duration_minutes <= 100000:
-                raise ValueError('Enter a valid duration.')
-            for flag in ['saleable', 'featured', 'hero', 'original', 'children', 'homepage_visible']:
+            for flag in ['featured', 'hero', 'homepage_visible']:
                 setattr(book, flag, flag in request.form)
+            book.saleable = book.price_minor > 0
             ids = request.form.getlist('categories')
             book.categories = db.session.scalars(db.select(Category).where(Category.id.in_(ids))).all()
             db.session.flush()
@@ -121,6 +147,7 @@ def edit_book(book_id=None):
                 upload = request.files.get(kind)
                 if upload and upload.filename:
                     old = book.asset(kind)
+                    active_field = kind
                     store_upload(upload, book, kind)
                     if old:
                         db.session.execute(db.update(ListeningProgress).where(ListeningProgress.media_id == old.id).values(media_id=None, seconds=0))
@@ -131,18 +158,20 @@ def edit_book(book_id=None):
             if chapter_file and chapter_file.filename:
                 chapter_title = text('chapter_title')
                 if not chapter_title:
-                    raise ValueError('Enter a title for the chapter audio.')
+                    raise BookValidationError({'chapter_title': 'Enter a title for the chapter audio.'})
+                active_field = 'chapter_audio'
                 asset = store_upload(chapter_file, book, 'chapter')
                 db.session.flush()
                 position = max([c.position for c in book.chapters] or [0]) + 1
                 book.chapters.append(Chapter(title=chapter_title, position=position, media=asset))
-            state = text('state', 20)
-            if state not in {'draft', 'published', 'archived'}:
-                raise ValueError('Choose a valid publication state.')
+            tracks = [c.media for c in book.chapters] if book.chapters else [book.asset('full')]
+            seconds = sum(asset.duration_seconds or 0 for asset in tracks if asset)
+            if seconds:
+                book.duration_minutes = max(1, math.ceil(seconds / 60))
             if state == 'published':
-                errors = publication_errors(book)
+                errors = publication_field_errors(book)
                 if errors:
-                    raise ValueError(' '.join(errors))
+                    raise BookValidationError(errors)
                 if not book.published_at:
                     book.published_at = now()
                 if book.hero:
@@ -152,15 +181,18 @@ def edit_book(book_id=None):
             db.session.commit()
             flash('Audiobook saved.', 'success')
             return redirect(url_for('admin.edit_book', book_id=book.id))
+        except BookValidationError as error:
+            db.session.rollback()
+            field_errors = error.errors
         except (ValueError, InvalidOperation) as error:
             db.session.rollback()
-            flash(str(error) if isinstance(error, ValueError) else 'Enter a valid price.', 'error')
+            field_errors = {active_field: str(error) if isinstance(error, ValueError) else 'Enter a valid price in pounds.'}
         except IntegrityError:
             db.session.rollback()
-            flash('That slug is already in use. Choose a unique slug.', 'error')
+            field_errors = {'title': 'This audiobook could not be saved because its details conflict with an existing record. Try a different title.'}
         book = db.session.get(Audiobook, book_id) if book_id else None
     categories = db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()
-    return render_template('admin/edit_book.html', book=book, categories=categories)
+    return render_template('admin/edit_book.html', book=book, categories=categories, field_errors=field_errors)
 
 @bp.get('/books/<string:book_id>/preview')
 @admin_required()
@@ -221,21 +253,24 @@ def move_chapter(chapter_id):
 @bp.route('/categories', methods=['GET', 'POST'])
 @admin_required('owner', 'editor')
 def categories():
+    field_errors = {}
     if request.method == 'POST':
         name = text('name', 80)
         slug = slugify(name)
-        if name and slug:
+        if not name or not slug:
+            field_errors['name'] = 'Genre name: enter a name containing letters or numbers.'
+        else:
             try:
                 db.session.add(Category(name=name, slug=slug))
                 audit('category.created', name)
                 db.session.commit()
                 flash('Genre added.', 'success')
+                return redirect(url_for('admin.categories'))
             except IntegrityError:
                 db.session.rollback()
-                flash('That genre already exists.', 'error')
-        return redirect(url_for('admin.categories'))
+                field_errors['name'] = 'Genre name: that genre already exists.'
     page = db.paginate(db.select(Category).order_by(Category.name), per_page=10, error_out=False)
-    return render_template('admin/categories.html', categories=page.items, page=page)
+    return render_template('admin/categories.html', categories=page.items, page=page, field_errors=field_errors)
 
 @bp.get('/orders')
 @admin_required('owner', 'support')
@@ -294,25 +329,30 @@ def enquiries():
 @bp.route('/staff', methods=['GET', 'POST'])
 @admin_required('owner')
 def staff():
+    field_errors = {}
     if request.method == 'POST':
         try:
             email = normalize_email(text('email', 254))
-            password = request.form.get('password', '')
-            role = text('role', 20)
-            if len(password) < 12 or role not in {'owner', 'editor', 'support'}:
-                raise ValueError('Choose a valid role and a password of at least 12 characters.')
-            db.session.add(AdminUser(email=email, password_hash=generate_password_hash(password), role=role))
-            audit('staff.created', f'{email}: {role}')
-            db.session.commit()
-            flash('Staff member created.', 'success')
-        except ValueError as error:
-            flash(str(error), 'error')
-        except IntegrityError:
-            db.session.rollback()
-            flash('That staff email already exists.', 'error')
-        return redirect(url_for('admin.staff'))
+        except ValueError:
+            field_errors['email'] = 'Email: enter a valid email address.'
+        password = request.form.get('password', '')
+        role = text('role', 20)
+        if len(password) < 12:
+            field_errors['password'] = 'Password: use at least 12 characters.'
+        if role not in {'owner', 'editor', 'support'}:
+            field_errors['role'] = 'Role: choose Owner, Editor or Support.'
+        if not field_errors:
+            try:
+                db.session.add(AdminUser(email=email, password_hash=generate_password_hash(password), role=role))
+                audit('staff.created', f'{email}: {role}')
+                db.session.commit()
+                flash('Staff member created.', 'success')
+                return redirect(url_for('admin.staff'))
+            except IntegrityError:
+                db.session.rollback()
+                field_errors['email'] = 'Email: that staff email already exists.'
     page = db.paginate(db.select(AdminUser).order_by(AdminUser.email), per_page=10, error_out=False)
-    return render_template('admin/staff.html', staff=page.items, page=page)
+    return render_template('admin/staff.html', staff=page.items, page=page, field_errors=field_errors)
 
 @bp.post('/staff/<string:user_id>/toggle')
 @admin_required('owner')

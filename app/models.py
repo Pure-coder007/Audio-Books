@@ -42,7 +42,7 @@ class Audiobook(db.Model):
     duration_minutes = db.Column(db.Integer, default=0)
     production_style = db.Column(db.String(40), default='Narrated')
     price_minor = db.Column(db.Integer, default=0, nullable=False)
-    currency = db.Column(db.String(3), default='ngn', nullable=False)
+    currency = db.Column(db.String(3), default='gbp', nullable=False)
     state = db.Column(db.String(20), default='draft', nullable=False)
     saleable = db.Column(db.Boolean, default=True)
     featured = db.Column(db.Boolean, default=False)

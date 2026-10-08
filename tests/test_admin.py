@@ -58,6 +58,18 @@ def test_incomplete_publication_is_rejected(admin_client,app):
     assert response.status_code==200 and b'Upload a cover' in response.data
     with app.app_context():assert db.session.scalar(db.select(Audiobook).where(Audiobook.slug=='new-real-title')) is None
 
+def test_price_enables_sales_and_uses_pounds(admin_client, app):
+    data = metadata(app, currency='usd', price='14.99')
+    data.pop('saleable')
+    assert admin_client.post('/admin/books/new', data=data).status_code == 302
+    with app.app_context():
+        book = db.session.scalar(db.select(Audiobook).where(Audiobook.slug == 'new-real-title'))
+        assert book.currency == 'gbp'
+        assert book.price_minor == 1499 and book.saleable
+    form = admin_client.get('/admin/books/new').data
+    assert 'Price in pounds (£)'.encode() in form
+    assert b'name="currency"' not in form
+
 def test_trailer_limit_and_fake_audio_validation(app):
     with app.app_context():
         book=db.session.get(Audiobook,app.config['TEST_BOOK_ID'])
@@ -68,9 +80,11 @@ def test_trailer_limit_and_fake_audio_validation(app):
 def test_private_audio_not_exposed_by_staff_preview_to_guests(client):
     assert client.get('/admin/media/'+'a'*32).status_code==302
 
-def test_duplicate_slug_does_not_crash(admin_client,app):
+def test_link_is_generated_from_title_instead_of_manual_slug(admin_client,app):
     response=admin_client.post('/admin/books/new',data=metadata(app,slug='test-book'))
-    assert response.status_code==200 and b'already in use' in response.data
+    assert response.status_code == 302
+    with app.app_context():
+        assert db.session.scalar(db.select(Audiobook).where(Audiobook.slug=='new-real-title'))
 
 @pytest.mark.parametrize('price',['1.001','-5','NaN','Infinity','word'])
 def test_invalid_prices_rejected(admin_client,app,price):
@@ -113,3 +127,73 @@ def test_genre_page_renders(client):
     assert response.status_code==200
     assert b'Fiction audiobooks.' in response.data
     assert client.get('/genres/missing').status_code==404
+
+
+def test_book_errors_identify_each_field_and_keep_entered_text(admin_client, app):
+    data = metadata(app, title='', author_name='', price='invalid', production_style='invalid')
+    response = admin_client.post('/admin/books/new', data=data)
+    assert response.status_code == 200
+    for field in ['title', 'author_name', 'price', 'production_style']:
+        assert f'id="{field}-error"'.encode() in response.data
+        assert f'href="#{field}"'.encode() in response.data
+    assert b'value="invalid"' in response.data
+    assert b'aria-invalid="true"' in response.data
+    with app.app_context():
+        assert db.session.scalar(db.select(Audiobook).where(Audiobook.slug=='new-real-title')) is None
+
+
+def test_publication_errors_point_to_missing_assets_and_genres(admin_client, app):
+    data = metadata(app, state='published', price='0', synopsis='', categories=[])
+    response = admin_client.post('/admin/books/new', data=data)
+    for field in ['synopsis', 'cover', 'trailer', 'full', 'categories', 'price']:
+        assert f'id="{field}-error"'.encode() in response.data
+
+
+def test_invalid_audio_points_to_upload_field(admin_client, app):
+    data = metadata(app)
+    data['full'] = (io.BytesIO(b'not audio'), 'broken.mp3')
+    response = admin_client.post('/admin/books/new', data=data)
+    assert b'id="full-error"' in response.data
+    assert b'Audio could not be decoded' in response.data
+    assert b'Please select your upload files again' in response.data
+
+
+def test_simple_edit_preserves_hidden_metadata_and_calculates_duration(admin_client, app):
+    with app.app_context():
+        book = db.session.get(Audiobook, app.config['TEST_BOOK_ID'])
+        book.publisher, book.seo_title, book.production_notes = 'Publisher', 'Search title', 'Production note'
+        book.original, book.children = True, True
+        book.author.bio = 'Author biography'
+        db.session.commit()
+    data = metadata(app, title='Renamed Book', author_name='Test Author')
+    for field in ['slug', 'currency', 'duration_minutes', 'narrator']:
+        data.pop(field, None)
+    response = admin_client.post(f'/admin/books/{app.config["TEST_BOOK_ID"]}/edit', data=data)
+    assert response.status_code == 302
+    with app.app_context():
+        book = db.session.get(Audiobook, app.config['TEST_BOOK_ID'])
+        assert book.slug == 'test-book' and book.duration_minutes == 1
+        assert book.publisher == 'Publisher' and book.seo_title == 'Search title'
+        assert book.production_notes == 'Production note' and book.author.bio == 'Author biography'
+        assert book.original and book.children
+    form = admin_client.get(f'/admin/books/{app.config["TEST_BOOK_ID"]}/edit').data
+    for field in ['slug','currency','duration_minutes','publisher','seo_title','credits','transcript','compare_plain']:
+        assert f'name="{field}"'.encode() not in form
+
+
+def test_staff_and_genre_errors_identify_fields(admin_client):
+    response = admin_client.post('/admin/staff', data={'email':'bad', 'password':'short', 'role':'unknown'})
+    assert response.status_code == 200
+    for field in ['email', 'password', 'role']:
+        assert f'id="{field}-error"'.encode() in response.data
+    response = admin_client.post('/admin/categories', data={'name':''})
+    assert response.status_code == 200 and b'id="name-error"' in response.data
+
+
+def test_duplicate_titles_get_unique_links(admin_client, app):
+    data = metadata(app)
+    assert admin_client.post('/admin/books/new', data=data).status_code == 302
+    assert admin_client.post('/admin/books/new', data=data).status_code == 302
+    with app.app_context():
+        books = db.session.scalars(db.select(Audiobook).where(Audiobook.title=='New Real Title')).all()
+        assert len(books) == 2 and books[0].slug != books[1].slug

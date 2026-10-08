@@ -42,7 +42,7 @@ def seed(app):
             production_notes='Sample production metadata. Finished titles will describe their actual narration, cast and sound design.',
             credits='Demo content and original cover artwork created for the MyAudioShelf prototype.',
             transcript='Welcome to MyAudioShelf. This is a sample audio preview, created to demonstrate your listening experience. Imagine the first light of morning moving across the city. A train waits at the platform. Somewhere, a story is about to begin. Every great story starts with a voice. Find yours on the shelf.',
-            production_style=style, duration_minutes=duration, price_minor=price, currency='ngn',
+            production_style=style, duration_minutes=duration, price_minor=price, currency='gbp',
             state='published', featured=i < 4, hero=i == 0, original=original, children=children,
             age_range='4–8' if children else '', is_demo=True, published_at=now()-timedelta(days=i*3), categories=[category])
         db.session.add(book)

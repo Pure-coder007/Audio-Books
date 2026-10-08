@@ -57,8 +57,8 @@ def catalog(genre_slug=None):
         query = query.where(Audiobook.duration_minutes <= 180)
     elif request.args.get('duration') == 'long':
         query = query.where(Audiobook.duration_minutes > 180)
-    if request.args.get('price') == 'under5000':
-        query = query.where(Audiobook.currency == 'ngn', Audiobook.price_minor < 500000)
+    if request.args.get('price') == 'under20':
+        query = query.where(Audiobook.currency == 'gbp', Audiobook.price_minor < 2000)
     sort = request.args.get('sort', 'newest')
     sorting = {'newest': Audiobook.published_at.desc(), 'featured': Audiobook.featured.desc(),
         'title': Audiobook.title.asc(), 'price': Audiobook.price_minor.asc()}
