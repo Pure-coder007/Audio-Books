@@ -4,9 +4,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def database_url(value):
+    # Neon supplies a PostgreSQL URL; use the psycopg 3 driver installed here.
+    for prefix in ('postgres://', 'postgresql://'):
+        if value.startswith(prefix):
+            return 'postgresql+psycopg://' + value[len(prefix):]
+    return value
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///myaudioshelf.db')
+    SQLALCHEMY_DATABASE_URI = database_url(os.environ.get('DATABASE_URL', 'sqlite:///myaudioshelf.db'))
+    SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BASE_URL = os.environ.get('BASE_URL', 'http://127.0.0.1:5000').rstrip('/')
     PRODUCTION = os.environ.get('APP_ENV') == 'production'

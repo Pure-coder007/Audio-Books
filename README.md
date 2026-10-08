@@ -137,3 +137,7 @@ The business plan is integrated into the existing storefront with About, Service
 Author enquiries include project information, optional private PDF/TXT/DOCX manuscripts (10 MB), and consent. Contact enquiries share the staff inbox with a recorded enquiry type. Staff owners/editors can download manuscripts; public visitors cannot. Run `db upgrade` when updating an installation; Render applies it automatically at startup.
 
 See [business brief implementation notes](docs/BUSINESS_BRIEF_IMPLEMENTATION.md) for implemented functionality, data handling, analytics scope and future work.
+
+## Adding audiobooks and Neon configuration
+
+See [the admin audiobook workflow](docs/ADMIN_AUDIOBOOK_WORKFLOW.md) for the Draft → upload → preview → publish flow, file limits, chapter management and discovery options. Standard Neon PostgreSQL URLs in `DATABASE_URL` are supported without manually changing the URL scheme. PostgreSQL needs `requirements-production.txt`. Local `.env` does not update Render environment variables; configure the deployed `DATABASE_URL` separately.
