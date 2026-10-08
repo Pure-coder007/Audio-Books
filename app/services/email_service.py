@@ -9,7 +9,7 @@ from .access_service import issue_magic_link
 def queue_access_email(email):
     link = issue_magic_link(email)
     db.session.add(EmailDelivery(recipient=email, subject='Your MyAudioShelf listening link',
-        body=f'Your shelf is ready. Open this single-use link within 15 minutes:\n\n{link}\n\nIf it expires, request a new link from My Purchases.\n\nMyAudioShelf'))
+        body=f'Your audiobook is ready to stream or download. Open this single-use link within 15 minutes:\n\n{link}\n\nIf it expires, request a new link from My Purchases.\n\nMyAudioShelf'))
 
 def deliver_pending():
     """Durable outbox: called by scheduled CLI, never during a Stripe transaction."""

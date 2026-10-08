@@ -18,3 +18,13 @@ The application reads `DATABASE_URL` from `.env` locally and from host environme
 Use `pip install -r requirements-production.txt` for PostgreSQL support. Run `python -m flask --app wsgi db upgrade` for migrations and `create-admin` to provision staff in a new database. SQLite records are not automatically transferred to Neon; the original SQLite file is retained. Seed initialization only adds missing sample catalogue records.
 
 For Render, set the web service's `DATABASE_URL` to the same Neon connection string in the dashboard. Local `.env` is ignored by Git and is not uploaded to Render. Database startup migrations remain automatic. Neon stores records, not uploaded audio or manuscripts: retain the persistent media disk or configure separate private object storage before replacing file storage.
+
+## Updating prices and genres
+
+Open Audiobooks → Edit beside the title. In Price & discovery, enter the price in major currency units (for example 15.00 GBP, not 1500), select the currency and check the desired genres. Available for sale enables purchases. Save audiobook applies the changes. Create additional genres in Genres → Add genre, then return to the book and select them. A Published save also validates all required publication fields; if the supplied prelaunch book lacks narrator/cast or a positive price, complete those fields before enabling sales.
+
+## Customer downloads
+
+Verified paid purchases show Download audiobook in My purchases and Download complete audiobook in the listening room. The purchase email leads to this library; it does not attach large recordings. A chapter-based book downloads as one ZIP with numbered files, an included cover when available, and a contents list. A full-file book downloads its original audio format. A new request checks both active entitlement and paid order status. Refunded/revoked access cannot start another download, but copies already saved to the customer's device cannot be recalled.
+
+The archive is created on temporary disk and streamed; allow adequate temporary disk space for large audiobooks. All full/chapter files must exist on the deployed server's private storage. Missing chapters produce an availability message rather than a partial archive.

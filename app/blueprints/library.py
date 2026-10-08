@@ -110,3 +110,52 @@ def save_progress(book_id):
     db.session.add(AnalyticsEvent(book_id=book_id, kind='listening_progress'))
     db.session.commit()
     return {'saved': True}
+
+@bp.get('/library/download/<int:book_id>')
+@limiter.limit('10 per hour')
+def download(book_id):
+    """A verified paid entitlement unlocks one file or every chapter in a ZIP."""
+    from tempfile import TemporaryFile
+    from zipfile import ZipFile, ZIP_STORED
+    from pathlib import Path
+    from werkzeug.utils import secure_filename
+    from ..models import Order
+    email = session.get('listener_email')
+    paid = db.session.scalar(db.select(PurchaseEntitlement.id).join(Order,
+        Order.id == PurchaseEntitlement.order_id).where(PurchaseEntitlement.email == email,
+        PurchaseEntitlement.book_id == book_id, PurchaseEntitlement.active.is_(True), Order.status == 'paid')) if email else None
+    if not paid: abort(403)
+    book = db.get_or_404(Audiobook, book_id)
+    assets = [chapter.media for chapter in book.chapters] if book.chapters else [book.asset('full')]
+    if not assets or any(asset is None for asset in assets): abort(404)
+    paths = [media_path(asset) for asset in assets]
+    if any(not path.is_file() for path in paths):
+        flash('The complete download is not available yet. Please contact our team for help with your purchase.', 'error')
+        return redirect(url_for('library.index'))
+    filename = secure_filename(book.slug) or f'audiobook-{book.id}'
+    if not book.chapters:
+        response = send_file(paths[0], mimetype=assets[0].mime_type, as_attachment=True,
+            download_name=filename + paths[0].suffix, conditional=True)
+    else:
+        # A disk-backed temporary archive avoids holding the entire audiobook in RAM.
+        archive = TemporaryFile(mode='w+b')
+        try:
+            with ZipFile(archive, 'w', compression=ZIP_STORED, allowZip64=True) as package:
+                for index, (chapter, path) in enumerate(zip(book.chapters, paths), 1):
+                    name = secure_filename(chapter.title)[:100] or 'Chapter'
+                    package.write(path, f'{index:03d} - {name}{path.suffix}')
+                cover = book.asset('cover')
+                if cover and media_path(cover).is_file():
+                    package.write(media_path(cover), 'Cover' + Path(cover.storage_key).suffix)
+                package.writestr('Contents.txt', book.title + '\nBy ' + book.author.name + '\n\n' +
+                    '\n'.join(f'{i:03d} - {c.title}' for i, c in enumerate(book.chapters, 1)))
+            archive.seek(0)
+            response = send_file(archive, mimetype='application/zip', as_attachment=True,
+                download_name=filename + '.zip', conditional=False)
+            response.call_on_close(archive.close)
+        except Exception:
+            archive.close()
+            raise
+    response.headers['Cache-Control'] = 'private, no-store'
+    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    return response

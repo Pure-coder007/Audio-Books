@@ -145,3 +145,5 @@ See [the admin audiobook workflow](docs/ADMIN_AUDIOBOOK_WORKFLOW.md) for the Dra
 ## Supplied catalogue
 
 The fictional seed titles are archived and hidden. Render now restores the supplied “5000 Names of God” artwork and 52-second preview instead of seeding fictional titles. The supplied book appears as Coming soon until its price and sales readiness are confirmed. Full recordings are private files, excluded from Git; the 23 tracks imported locally need to be uploaded to the deployed persistent media storage before full listening on Render. Neon stores metadata and file references, not the recordings themselves. Existing historical references to archived sample titles are preserved.
+
+Paid customers can now download their audiobook from the purchase library: full-file titles download directly, while chapter-based titles download as an ordered ZIP with cover and contents. Every request checks a verified paid order and active entitlement. Full recordings must be available in the deployed private media storage. See the admin workflow guide for price/genre editing.

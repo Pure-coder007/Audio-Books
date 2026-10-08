@@ -288,7 +288,7 @@ function showPageLoader(){
 }
 document.addEventListener('click',event=>{
   const link=event.target.closest('a[href]');
-  if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.hasAttribute('download')||(link.target&&link.target!=='_self'))return;
+  if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.hasAttribute('download')||link.hasAttribute('data-no-loader')||(link.target&&link.target!=='_self'))return;
   const destination=new URL(link.href,location.href);
   if(destination.origin!==location.origin||(destination.pathname===location.pathname&&destination.search===location.search&&destination.hash))return;
   if(event.defaultPrevented&&!link.dataset.navigating)return;

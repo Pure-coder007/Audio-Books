@@ -2846,3 +2846,5 @@ html.page-loading .page-loader[hidden]{display:grid}
 .account-shell{grid-template-columns:repeat(2,minmax(0,1fr))}.account-shell>*{min-width:0}.account-panel input,.account-panel select,.account-panel textarea{min-width:0;max-width:100%;width:100%}.account-panel .checkbox-label input{width:auto}.production-form{min-width:0}.production-form input,.production-form textarea,.production-form select{min-width:0;max-width:100%}.production-form input[type=file]{font-size:12px;width:100%}.production-form input[type=checkbox]{width:auto}
 @media(max-width:800px){.account-shell{grid-template-columns:minmax(0,1fr)}}
 .site-header .nav-discover summary{padding:0;border:0;margin:0;font-size:inherit;line-height:inherit}.site-header .nav-discover summary.active{color:var(--ink);text-decoration:underline;text-underline-offset:8px}
+
+.library-download{margin-top:10px}.book-card .library-download{font-size:12px}
