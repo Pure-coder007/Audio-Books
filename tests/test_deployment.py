@@ -21,7 +21,7 @@ def test_render_gunicorn_initializes_database(monkeypatch):
     monkeypatch.setenv('RENDER', 'true')
     monkeypatch.setenv('SAMPLE_CATALOG', 'false')
     config['on_starting'](Mock())
-    assert runner.call_args.args[0][1:] == ['-m', 'flask', '--app', 'wsgi', 'db', 'upgrade']
+    assert runner.call_args_list[0].args[0][1:] == ['-m', 'flask', '--app', 'wsgi', 'db', 'upgrade']
     assert runner.call_args.kwargs['check'] is True
     runner.reset_mock()
     monkeypatch.delenv('RENDER')

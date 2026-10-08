@@ -141,3 +141,7 @@ See [business brief implementation notes](docs/BUSINESS_BRIEF_IMPLEMENTATION.md)
 ## Adding audiobooks and Neon configuration
 
 See [the admin audiobook workflow](docs/ADMIN_AUDIOBOOK_WORKFLOW.md) for the Draft → upload → preview → publish flow, file limits, chapter management and discovery options. Standard Neon PostgreSQL URLs in `DATABASE_URL` are supported without manually changing the URL scheme. PostgreSQL needs `requirements-production.txt`. Local `.env` does not update Render environment variables; configure the deployed `DATABASE_URL` separately.
+
+## Supplied catalogue
+
+The fictional seed titles are archived and hidden. Render now restores the supplied “5000 Names of God” artwork and 52-second preview instead of seeding fictional titles. The supplied book appears as Coming soon until its price and sales readiness are confirmed. Full recordings are private files, excluded from Git; the 23 tracks imported locally need to be uploaded to the deployed persistent media storage before full listening on Render. Neon stores metadata and file references, not the recordings themselves. Existing historical references to archived sample titles are preserved.

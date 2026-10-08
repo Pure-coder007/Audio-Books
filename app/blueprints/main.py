@@ -10,7 +10,7 @@ from ..services.media_service import media_path
 bp = Blueprint('main', __name__)
 
 def visible_books():
-    query = db.select(Audiobook).where(Audiobook.state == 'published', Audiobook.saleable.is_(True))
+    query = db.select(Audiobook).where(Audiobook.state == 'published')
     if not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG']):
         query = query.where(Audiobook.is_demo.is_(False))
     return query
@@ -82,7 +82,7 @@ def book(slug):
         'url': current_app.config['BASE_URL'] + url_for('main.book', slug=book.slug),
         'offers': {'@type': 'Offer', 'price': f'{book.price_minor / 100:.2f}',
             'priceCurrency': book.currency.upper(), 'availability': 'https://schema.org/InStock'}}
-    return render_template('book.html', book=book, related=related, book_schema=schema if not book.is_demo else None)
+    return render_template('book.html', book=book, related=related, book_schema=schema if not book.is_demo and book.saleable else None)
 
 @bp.post('/books/<int:book_id>/trailer-play')
 @limiter.limit('30 per minute')

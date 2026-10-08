@@ -41,6 +41,12 @@ def register_commands(app):
         db.session.commit()
         click.echo('Password reset; previous sessions invalidated.')
 
+    @app.cli.command('restore-curated-catalog')
+    def restore_curated():
+        from .curated_catalog import restore
+        restore(app)
+        click.echo('Supplied catalogue restored; fictional samples archived.')
+
     @app.cli.command('seed-demo')
     def seed_demo():
         if app.config['PRODUCTION'] and not app.config['SAMPLE_CATALOG']:
