@@ -19,14 +19,10 @@ def visible_books():
 def home():
     books = db.session.scalars(visible_books().where(Audiobook.homepage_visible.is_(True)).order_by(Audiobook.published_at.desc(), Audiobook.id.desc()).limit(36)).all()
     home_query = visible_books().where(Audiobook.homepage_visible.is_(True))
-    hero = db.session.scalar(home_query.where(Audiobook.hero.is_(True)).limit(1)) or (books[0] if books else None)
-    def collection(flag, limit=4):
-        return db.session.scalars(home_query.where(flag).order_by(Audiobook.published_at.desc()).limit(limit)).all()
-    comparisons = [b for b in db.session.scalars(home_query).all() if b.asset('compare_plain') and b.asset('compare_immersive')]
-    return render_template('home.html', books=books, hero=hero,
-        featured=collection(Audiobook.featured.is_(True)), children=collection(Audiobook.children.is_(True)),
-        originals=collection(Audiobook.original.is_(True)), immersive=collection(Audiobook.production_style == 'Immersive', 3),
-        comparison=comparisons[0] if comparisons else None)
+    hero = db.session.scalar(home_query.where(Audiobook.hero.is_(True)).order_by(
+        Audiobook.published_at.desc(), Audiobook.id.desc()).limit(1)) or (books[0] if books else None)
+    shelf_books = [book for book in books if not hero or book.id != hero.id][:12]
+    return render_template('home.html', hero=hero, shelf_books=shelf_books)
 
 @bp.get('/books')
 @bp.get('/genres/<genre_slug>', endpoint='category')

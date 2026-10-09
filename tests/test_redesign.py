@@ -2,6 +2,45 @@ from app.extensions import db
 from app.models import Audiobook
 
 
+def test_homepage_shows_each_book_once_even_when_collections_overlap(client, app):
+    with app.app_context():
+        original = db.session.get(Audiobook, app.config['TEST_BOOK_ID'])
+        original.hero = True
+        original.featured = original.original = original.children = True
+        original.production_style = 'Immersive'
+        for index in range(2):
+            db.session.add(Audiobook(title=f'Unique title {index}', slug=f'unique-{index}',
+                author=original.author, state='published', homepage_visible=True,
+                featured=True, original=True, children=True, production_style='Immersive',
+                saleable=True, price_minor=1499))
+        db.session.commit()
+    response = client.get('/')
+    assert response.status_code == 200
+    for title in ['Test Book', 'Unique title 0', 'Unique title 1']:
+        assert response.data.count(f'alt="{title} cover"'.encode()) == 1
+    assert response.data.count(b'<article class="book-card">') == 2
+    assert b'Follow your curiosity' in response.data
+    assert 'What’s your kind of story?'.encode() in response.data
+    assert b'genre-tile-fiction' in response.data
+
+
+def test_homepage_single_book_does_not_repeat_in_shelf(client):
+    response = client.get('/')
+    assert response.data.count(b'alt="Test Book cover"') == 1
+    assert b'<article class="book-card">' not in response.data
+    assert b'Good stories are on their way.' not in response.data
+
+
+def test_homepage_without_books_keeps_genres_and_empty_state(client, app):
+    with app.app_context():
+        db.session.get(Audiobook, app.config['TEST_BOOK_ID']).state = 'draft'
+        db.session.commit()
+    response = client.get('/')
+    assert response.status_code == 200
+    assert b'Good stories are on their way.' in response.data
+    assert b'Follow your curiosity' in response.data
+
+
 def test_catalog_ten_per_page_and_search_reset(client, app):
     with app.app_context():
         original=db.session.get(Audiobook,app.config['TEST_BOOK_ID'])

@@ -2758,6 +2758,7 @@ html[data-color-mode=dark] .form-error-summary { border-color: #ffaaa4; }
 body{padding-top:var(--nav-height);isolation:isolate}
 body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--platform-image);background-size:cover;background-position:center;opacity:.065}
 .theme-fiction{--platform-image:url('../images/genres/fiction.jpg')}.theme-non-fiction{--platform-image:url('../images/genres/non-fiction.jpg')}.theme-horror{--platform-image:url('../images/genres/horror.jpg')}.theme-romance{--platform-image:url('../images/genres/romance.jpg')}.theme-drama{--platform-image:url('../images/genres/drama.jpg')}.theme-children{--platform-image:url('../images/genres/children.jpg')}.theme-educational{--platform-image:url('../images/genres/educational.jpg')}.theme-originals{--platform-image:url('../images/genres/originals.jpg')}
+body.homepage{--platform-image:url('../images/new_images/homepage-background.webp')}
 html{scroll-padding-top:calc(var(--nav-height) + 20px)}
 .site-header{position:fixed;inset:0 0 auto;min-height:120px;padding:8px 52px;background:#f9f8f3;box-shadow:0 3px 14px #20241e08;z-index:50}
 .brand{flex-shrink:0;letter-spacing:normal}.brand-logo{width:155px;height:104px;object-fit:contain}.site-header nav{font-size:16px;gap:34px}.nav-tools{font-size:15px;gap:25px}.site-header nav a{padding:12px 0}.nav-toggle{font-size:15px}
@@ -2786,6 +2787,9 @@ html[data-color-mode=dark] .button.secondary{color:var(--ink);background:var(--s
 html[data-color-mode=dark] .button.secondary:hover{background:#314030}
 html[data-color-mode=dark] .cart-link .cart-count{color:var(--on-accent)}
 html[data-color-mode=dark] .hero-art,html[data-color-mode=dark] .hero-empty,html[data-color-mode=dark] .immersive-covers,html[data-color-mode=dark] .detail-cover{background:#263128}
+/* Homepage book artwork sits directly over the page background. */
+body.homepage .hero-art,body.homepage .immersive-covers{background:transparent}
+body.homepage .hero-art>img{box-shadow:none}
 html[data-color-mode=dark] .hero-orbit,html[data-color-mode=dark] .hero-orbit:after{border-color:#58694b}
 html[data-color-mode=dark] .audio-stamp{color:var(--on-accent)}
 html[data-color-mode=dark] .genre-tabs a{background:var(--surface);border-color:var(--line)}

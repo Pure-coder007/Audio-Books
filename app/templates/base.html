@@ -15,7 +15,7 @@
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </head>
 {% set active_genre = selected_genre if selected_genre else (book.categories[0] if book and book.categories else none) %}
-<body class="theme-{{ genre_theme(active_genre.slug if active_genre else request.args.get('collection')).key }}">
+<body class="theme-{{ genre_theme(active_genre.slug if active_genre else request.args.get('collection')).key }}{% if request.endpoint == 'main.home' %} homepage{% endif %}">
 <div id="page-loader" class="page-loader" role="status" aria-label="Loading" hidden><span class="loading-spinner" aria-hidden="true"></span><span class="sr-only">Loading…</span></div>
 <a class="skip-link" href="#main">Skip to content</a>
 
