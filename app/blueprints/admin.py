@@ -77,8 +77,15 @@ def books():
     q = request.args.get('q', '').strip()[:150]
     if q:
         query = query.where(Audiobook.title.ilike('%' + q.replace('%', '\\%').replace('_', '\\_') + '%', escape='\\'))
+    view = request.args.get('view', '')
+    if view == 'featured':
+        query = query.where(Audiobook.featured.is_(True))
+    elif view == 'coming_soon':
+        query = query.where(Audiobook.featured.is_(True), Audiobook.price_minor <= 0)
+    else:
+        view = ''
     page = db.paginate(query, per_page=10, error_out=False)
-    return render_template('admin/books.html', books=page.items, page=page, q=q)
+    return render_template('admin/books.html', books=page.items, page=page, q=q, view=view)
 
 @bp.route('/books/new', methods=['GET', 'POST'])
 @bp.route('/books/<string:book_id>/edit', methods=['GET', 'POST'])
@@ -97,7 +104,8 @@ def edit_book(book_id=None):
             if not author_name:
                 errors['author_name'] = 'Enter the author name.'
             try:
-                amount = Decimal(request.form.get('price', '0'))
+                # A blank price is allowed: featured titles without one are shown as Coming soon.
+                amount = Decimal(request.form.get('price', '').strip() or '0')
                 if not amount.is_finite() or amount < 0 or amount > 10000000 or amount.as_tuple().exponent < -2:
                     errors['price'] = 'Enter a price between £0 and £10,000,000 with at most two decimal places.'
             except InvalidOperation:
@@ -179,7 +187,7 @@ def edit_book(book_id=None):
             book.state = state
             audit('book.saved', f'{book.id}: {book.title} ({state})')
             db.session.commit()
-            flash('Audiobook saved.', 'success')
+            flash('Audiobook saved. It is on the Featured shelf as Coming soon.' if state == 'published' and book.coming_soon else 'Audiobook saved.', 'success')
             return redirect(url_for('admin.edit_book', book_id=book.id))
         except BookValidationError as error:
             db.session.rollback()

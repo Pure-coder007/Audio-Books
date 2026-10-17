@@ -6,6 +6,34 @@ from .extensions import db
 from .models import Audiobook,Author,Category,MediaAsset,now
 
 SLUG='5000-names-of-god'
+# Featured titles announced before pricing. Staff add a price, preview and audio later in Shelf studio.
+COMING_SOON=[
+    {'slug':'victory-unattended','title':'Victory Unattended','genre':('Fiction','fiction'),
+     'synopsis':'A Story of a Struggling Boy. A fictional psychological thriller by David Mozie, and a novel of ambition, survival, identity and healing about the cost of success and the search for peace.'},
+    {'slug':'5000-acts-of-love','title':'5000 Acts of Love','genre':('Romance','romance'),
+     'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
+]
+
+def copy_asset(app,book,folder,kind,filename,mime):
+    source=Path(app.root_path)/'catalog_assets'/folder/filename
+    root=Path(app.config['MEDIA_ROOT']);root.mkdir(parents=True,exist_ok=True)
+    key=folder+'-'+filename
+    shutil.copyfile(source,root/key)
+    if not book.asset(kind):
+        duration=File(source).info.length if kind=='trailer' else 0
+        book.media.append(MediaAsset(kind=kind,storage_key=key,mime_type=mime,size_bytes=source.stat().st_size,duration_seconds=duration))
+
+def restore_coming_soon(app,author,spec):
+    book=db.session.scalar(db.select(Audiobook).where(Audiobook.slug==spec['slug']))
+    if not book:
+        name,slug=spec['genre']
+        category=db.session.scalar(db.select(Category).where(Category.slug==slug))
+        if not category:
+            category=Category(name=name,slug=slug);db.session.add(category)
+        book=Audiobook(slug=spec['slug'],title=spec['title'],author=author,categories=[category],synopsis=spec['synopsis'],language='English',production_style='Narrated',state='published',saleable=False,featured=True,hero=False,homepage_visible=True,price_minor=0,currency='gbp',published_at=now())
+        db.session.add(book);db.session.flush()
+    copy_asset(app,book,spec['slug'],'cover','cover.jpeg','image/jpeg')
+    return book
 
 def restore(app):
     # Preserve references from historical orders while removing samples from all shelves.
@@ -21,13 +49,9 @@ def restore(app):
         book=Audiobook(slug=SLUG,title='5000 Names of God',author=author,categories=[category],synopsis='An audiobook by David Mozie exploring the names and attributes of God.',language='English',production_style='Immersive',state='published',saleable=False,featured=True,hero=True,homepage_visible=True,duration_minutes=208,price_minor=0,currency='gbp',published_at=now())
         db.session.add(book)
     db.session.flush()
-    source=Path(app.root_path)/'catalog_assets'/SLUG
-    root=Path(app.config['MEDIA_ROOT']);root.mkdir(parents=True,exist_ok=True)
     for kind,filename,mime in [('cover','cover.jpeg','image/jpeg'),('trailer','preview.mp3','audio/mpeg')]:
-        key=SLUG+'-'+filename
-        shutil.copyfile(source/filename,root/key)
-        if not book.asset(kind):
-            duration=File(source/filename).info.length if kind=='trailer' else 0
-            book.media.append(MediaAsset(kind=kind,storage_key=key,mime_type=mime,size_bytes=(source/filename).stat().st_size,duration_seconds=duration))
+        copy_asset(app,book,SLUG,kind,filename,mime)
+    for spec in COMING_SOON:
+        restore_coming_soon(app,author,spec)
     db.session.commit()
     return book

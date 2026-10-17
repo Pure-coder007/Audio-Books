@@ -61,7 +61,13 @@ class Audiobook(db.Model):
     def asset(self, kind):
         return next((m for m in self.media if m.kind == kind), None)
     @property
+    def coming_soon(self):
+        # Featured titles without a price are announced on the Featured shelf before sales open.
+        return bool(self.featured) and (self.price_minor or 0) <= 0
+    @property
     def duration_label(self):
+        if not self.duration_minutes:
+            return 'Length TBC'
         h, m = divmod(self.duration_minutes or 0, 60)
         return f'{h}h {m:02d}m' if h else f'{m}m'
     @property

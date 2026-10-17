@@ -77,12 +77,14 @@ def publication_field_errors(book):
         errors['categories'] = 'Choose at least one genre.'
     if not book.asset('cover'):
         errors['cover'] = 'Upload a cover.'
-    if not book.asset('trailer'):
-        errors['trailer'] = 'Upload a preview of up to 60 seconds.'
-    if not book.asset('full') and not book.chapters:
-        errors['full'] = 'Upload full audio or at least one chapter.'
-    if book.price_minor <= 0:
-        errors['price'] = 'Set a price greater than zero in pounds.'
+    # Coming-soon titles are announced, not sold, so their recordings can follow later.
+    if not book.coming_soon:
+        if not book.asset('trailer'):
+            errors['trailer'] = 'Upload a preview of up to 60 seconds.'
+        if not book.asset('full') and not book.chapters:
+            errors['full'] = 'Upload full audio or at least one chapter.'
+    if book.price_minor <= 0 and not book.featured:
+        errors['price'] = 'Set a price greater than zero in pounds, or tick Featured to publish it as Coming soon.'
     if book.is_demo:
         errors['state'] = 'Demo titles cannot be published for real sales; create your own title.'
     return errors

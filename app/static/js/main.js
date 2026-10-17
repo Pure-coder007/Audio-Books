@@ -299,9 +299,17 @@ document.addEventListener('submit',event=>{
 });
 
 // Keep discovery navigation accessible without adding another navigation bar.
-const discoverMenu=document.querySelector('.nav-discover');
-document.addEventListener('click',event=>{if(discoverMenu&&!discoverMenu.contains(event.target))discoverMenu.open=false;});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&discoverMenu?.open){discoverMenu.open=false;discoverMenu.querySelector('summary').focus();}});
+const navMenus=[...document.querySelectorAll('.nav-discover')];
+navMenus.forEach(menu=>menu.addEventListener('toggle',()=>{if(menu.open)navMenus.forEach(other=>{if(other!==menu)other.open=false;});}));
+document.addEventListener('click',event=>navMenus.forEach(menu=>{if(!menu.contains(event.target))menu.open=false;}));
+document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const menu=navMenus.find(item=>item.open);if(menu){menu.open=false;menu.querySelector('summary').focus();}});
+// Desktop pointers open the menus on hover; touch and the mobile menu keep tap-to-open.
+const hoverNav=window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1051px)');
+navMenus.forEach(menu=>{
+  let closeTimer;
+  menu.addEventListener('pointerenter',event=>{if(event.pointerType!=='mouse'||!hoverNav.matches)return;clearTimeout(closeTimer);menu.open=true;});
+  menu.addEventListener('pointerleave',event=>{if(event.pointerType!=='mouse'||!hoverNav.matches)return;closeTimer=setTimeout(()=>{menu.open=false;},180);});
+});
 // Native demonstration players share playback focus with previews.
 document.addEventListener('play',event=>{if(event.target.tagName==='AUDIO')document.querySelectorAll('audio').forEach(audio=>{if(audio!==event.target)audio.pause();});},true);
 

@@ -63,6 +63,13 @@ def catalog(genre_slug=None):
     return render_template('catalog.html', page=page, q=q, selected_genre=selected_genre,
         languages=sorted({b.language for b in facets}), ages=sorted({b.age_range for b in facets if b.age_range}))
 
+@bp.get('/featured')
+def featured():
+    # Only unpriced featured titles: once a price is added the book lives on the bookshelf.
+    coming_soon = db.session.scalars(visible_books().where(Audiobook.featured.is_(True), Audiobook.price_minor <= 0)
+        .order_by(Audiobook.published_at.desc(), Audiobook.id.desc()).limit(48)).all()
+    return render_template('featured.html', coming_soon=coming_soon)
+
 @bp.get('/books/<slug>')
 def book(slug):
     book = db.session.scalar(visible_books().where(Audiobook.slug == slug))
@@ -165,7 +172,7 @@ def newsletter():
 @bp.get('/sitemap.xml')
 def sitemap():
     from ..content.company import PAGES
-    pages = [current_app.config['BASE_URL'] + '/' + slug for slug in PAGES] + [current_app.config['BASE_URL'] + url_for('main.contact'), current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.production')]
+    pages = [current_app.config['BASE_URL'] + '/' + slug for slug in PAGES] + [current_app.config['BASE_URL'] + url_for('main.contact'), current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.featured'), current_app.config['BASE_URL'] + url_for('main.production')]
     books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False))).all()
     pages.extend(current_app.config['BASE_URL'] + url_for('main.book', slug=b.slug) for b in books)
     authors = db.session.scalars(db.select(Author).where(Author.id.in_({b.author_id for b in books}))).all()
