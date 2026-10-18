@@ -10,6 +10,7 @@ from ..models import (Audiobook, Author, Category, Chapter, MediaAsset, Order, P
 from ..services.access_service import admin_required, normalize_email
 from ..services.media_service import store_upload, publication_field_errors, media_path
 from ..services.email_service import queue_access_email
+from ..content.admin_tour import TOUR_PAGES, TOURS, TOUR_SIGN_INS
 from .main import visible_books
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -30,6 +31,40 @@ class BookValidationError(ValueError):
 def text(field, limit=180):
     return request.form.get(field, '').strip()[:limit]
 
+def tour_sign_in(user):
+    """This sign-in's number for the guided tour, or 0 once the tour is turned off."""
+    logs = db.select(db.func.count()).select_from(AuditLog).where(AuditLog.admin_id == user.id)
+    if db.session.scalar(logs.where(AuditLog.action == 'tour.dismissed')):
+        return 0
+    return db.session.scalar(logs.where(AuditLog.action == 'login'))
+
+@bp.context_processor
+def guided_tour():
+    page = TOUR_PAGES.get(request.endpoint)
+    if not page or not getattr(g, 'admin', None):
+        return {'tour': None}
+    sign_in = session.get('tour_sign_in', 0)
+    auto = 0 < sign_in <= TOUR_SIGN_INS and not session.get('tour_skipped') and page not in session.get('tour_seen', [])
+    return {'tour': {'page': page, 'steps': TOURS[page], 'auto': auto, 'sign_in': sign_in if auto else 0,
+        'sign_ins': TOUR_SIGN_INS, 'endpoint': url_for('admin.tour')}}
+
+@bp.post('/tour')
+@admin_required()
+def tour():
+    data = request.get_json(silent=True) or {}
+    action, page = data.get('action'), data.get('page')
+    if action not in {'seen', 'skip', 'never'} or page not in TOURS:
+        abort(400)
+    if action == 'seen':
+        session['tour_seen'] = list(dict.fromkeys(session.get('tour_seen', []) + [page]))
+    elif action == 'skip':
+        session['tour_skipped'] = True
+    else:
+        session['tour_sign_in'] = 0
+        audit('tour.dismissed', 'Guided tour turned off')
+        db.session.commit()
+    return {'ok': True}
+
 @bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit('10 per 15 minutes', methods=['POST'])
 def login():
@@ -43,6 +78,7 @@ def login():
             session['admin_version'] = user.session_version
             db.session.add(AuditLog(admin_id=user.id, action='login', detail='Staff sign-in'))
             db.session.commit()
+            session['tour_sign_in'] = tour_sign_in(user)
             return redirect(url_for('admin.dashboard'))
         flash('Email or password is incorrect.', 'error')
     return render_template('admin/login.html')
