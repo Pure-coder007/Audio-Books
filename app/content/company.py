@@ -10,3 +10,11 @@ PAGES = {
  'terms': dict(title='Platform terms', eyebrow='Using MyAudioShelf', heading='Clear expectations for every story.', intro='Use the platform responsibly and submit only material you are authorised to share. Production scope and rights are agreed separately before any project begins.', cards=[('Production enquiries','Submitting an enquiry does not create a production contract. Pricing, deliverables, permissions and timelines require a separate agreement.'),('Sample content','Fictional sample titles and demonstration audio illustrate the platform. They are not licensed commercial audiobooks and cannot be purchased through real Stripe payments.'),('Creative rights','Authors and rights holders retain their rights. Do not upload manuscripts, recordings or other material without permission.'),('Technology in development','Innovation descriptions explain our proposed direction. They do not promise that research capabilities are currently available.'),('Purchased audio','Streaming and new downloads of purchased audio depend on a verified paid purchase and its current entitlement. Copies already downloaded cannot be recalled when access is revoked. Contact the team for order or access issues.')]),
 }
 PROCESS=[('Submit your project','Tell us about the book, audience and production you have in mind.'),('Creative assessment','Discuss the story and the production format that best serves it.'),('Production planning','Agree adaptation, casting, sound direction and scope.'),('Recording','Capture and direct the voices that bring the story to life.'),('Post-production','Edit performances, develop sound and music, and master the audio.'),('Delivery','Prepare the agreed final audio and supporting materials for distribution.')]
+
+# Official profiles, verified October 2026. Shown in every page footer and the homepage schema.
+SOCIAL_LINKS = [
+    ('facebook', 'Facebook', 'https://www.facebook.com/profile.php?id=61590071573615'),
+    ('instagram', 'Instagram', 'https://www.instagram.com/myaudioshelf.official/'),
+    ('x', 'X', 'https://x.com/Myaudioshelf'),
+    ('tiktok', 'TikTok', 'https://www.tiktok.com/@david_mozie'),
+]
