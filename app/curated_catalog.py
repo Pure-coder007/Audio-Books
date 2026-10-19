@@ -12,10 +12,20 @@ COMING_SOON=[
      'synopsis':'A Story of a Struggling Boy. A fictional psychological thriller by David Mozie, and a novel of ambition, survival, identity and healing about the cost of success and the search for peace.'},
     {'slug':'5000-acts-of-love','title':'5000 Acts of Love','genre':('Romance','romance'),
      'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
+    {'slug':'genius-in-the-dungeon','title':'Genius in the Dungeon','genre':('Fiction','fiction'),
+     'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
+    {'slug':'star-among-thorns','title':'Star Among Thorns','genre':('Fiction','fiction'),
+     'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
+    {'slug':'in-gods-hands','title':"In God's Hands",'genre':('Faith & Spirituality','faith-and-spirituality'),
+     'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
+    {'slug':'the-bank-manager','title':'The Bank Manager','genre':('Non-fiction','non-fiction'),
+     'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
 ]
 
 def copy_asset(app,book,folder,kind,filename,mime):
     source=Path(app.root_path)/'catalog_assets'/folder/filename
+    if not source.is_file():
+        return
     root=Path(app.config['MEDIA_ROOT']);root.mkdir(parents=True,exist_ok=True)
     key=folder+'-'+filename
     shutil.copyfile(source,root/key)
