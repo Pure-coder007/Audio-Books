@@ -8,7 +8,7 @@ from ..extensions import db, limiter
 from ..models import (Audiobook, Author, Category, Chapter, MediaAsset, Order, PurchaseEntitlement,
     ProductionEnquiry, AdminUser, AuditLog, AnalyticsEvent, EmailDelivery, NewsletterSubscriber, ListeningProgress, now, uid)
 from ..services.access_service import admin_required, normalize_email
-from ..services.media_service import store_upload, publication_field_errors, media_path
+from ..services.media_service import store_upload, publication_field_errors, media_path, AUDIO_ACCEPT
 from ..services.email_service import queue_access_email
 from ..content.admin_tour import TOUR_PAGES, TOURS, TOUR_SIGN_INS
 from .main import visible_books
@@ -236,7 +236,7 @@ def edit_book(book_id=None):
             field_errors = {'title': 'This audiobook could not be saved because its details conflict with an existing record. Try a different title.'}
         book = db.session.get(Audiobook, book_id) if book_id else None
     categories = db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()
-    return render_template('admin/edit_book.html', book=book, categories=categories, field_errors=field_errors)
+    return render_template('admin/edit_book.html', book=book, categories=categories, field_errors=field_errors, audio_accept=AUDIO_ACCEPT)
 
 @bp.get('/books/<string:book_id>/preview')
 @admin_required()

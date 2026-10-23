@@ -3,7 +3,7 @@
 1. Sign in at `/admin/login` as an owner or editor. Support staff cannot create or edit books.
 2. Open Audiobooks and choose Add audiobook.
 3. Start in Draft. Enter the title, author, narrator/cast, synopsis, language, production style and total duration in minutes. Add the publisher, biography, credits, notes and transcript when available.
-4. Upload cover artwork (JPG/PNG/WebP; up to 10 MB; at least 200 × 200 pixels), a dedicated trailer (up to 60 seconds), and either full audio or chapters. Audio formats: MP3, M4A, WAV, OGG and FLAC, up to 500 MB per file; the form request also has a 512 MB total cap, so upload large assets across separate saves.
+4. Upload cover artwork (JPG/PNG/WebP; up to 10 MB; at least 200 × 200 pixels), a dedicated trailer (up to 60 seconds), and either full audio or chapters. Audio formats: MP3, MPEG, M4A, M4B, AAC, WAV, OGG and FLAC, up to 500 MB per file; the form request also has a 512 MB total cap, so upload large assets across separate saves.
 5. For chapters, enter a chapter title, upload its audio and save. Repeat for each chapter. Use the chapter management controls to move or remove chapters. If chapters exist, the player uses chapters rather than the full-audio file.
 6. Enter a positive price in major currency units, choose currency and select at least one genre. Keep Available for sale checked for public catalogue visibility. Show on homepage controls home shelves; Featured, Hero, Original and Children select their corresponding collections. Only one published hero title is active.
 7. Save the draft and use Preview. Check cover, trailer, description, price, genre and credits. Staff can preview draft media; purchased full audio remains private.

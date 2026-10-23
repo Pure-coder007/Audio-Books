@@ -8,7 +8,10 @@ import wave
 from ..extensions import db
 from ..models import MediaAsset
 
-AUDIO_TYPES = {'.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.flac': 'audio/flac'}
+AUDIO_TYPES = {'.mp3': 'audio/mpeg', '.mpeg': 'audio/mpeg', '.mpga': 'audio/mpeg', '.mp2': 'audio/mpeg', '.m4a': 'audio/mp4', '.m4b': 'audio/mp4',
+    '.aac': 'audio/aac', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.flac': 'audio/flac'}
+AUDIO_ACCEPT = ','.join(AUDIO_TYPES)
+MPEG_MIMES = {'audio/mpeg', 'audio/mp3', 'audio/mpg', 'audio/x-mpeg', 'audio/mp2'}
 
 def media_path(asset):
     from .storage_service import path_for
@@ -39,14 +42,20 @@ def store_upload(upload, book, kind):
         suffix, mime, duration = '.jpg', 'image/jpeg', 0
     else:
         if suffix not in AUDIO_TYPES or len(data) > 500 * 1024 * 1024:
-            raise ValueError('Audio must be MP3, M4A, WAV, OGG or FLAC up to 500 MB.')
+            raise ValueError('Audio must be MP3, MPEG, M4A, M4B, AAC, WAV, OGG or FLAC up to 500 MB.')
         try:
             if suffix == '.wav':
                 with wave.open(io.BytesIO(data)) as audio:
                     duration = audio.getnframes() / audio.getframerate()
             else:
-                audio = AudioFile(io.BytesIO(data))
-                accepted_mimes = {'.mp3': {'audio/mpeg', 'audio/mp3'}, '.m4a': {'audio/mp4', 'audio/x-m4a'}, '.ogg': {'audio/ogg', 'audio/vorbis', 'audio/opus', 'audio/speex', 'audio/x-ogg'}, '.flac': {'audio/flac', 'audio/x-flac'}}
+                if suffix in {'.mp3', '.mpeg', '.mpga', '.mp2'}:
+                    # Untagged MPEG audio is only recognised by name, so read it as MPEG directly.
+                    from mutagen.mp3 import MP3
+                    audio = MP3(io.BytesIO(data))
+                else:
+                    audio = AudioFile(io.BytesIO(data))
+                mp4 = {'audio/mp4', 'audio/x-m4a'}
+                accepted_mimes = {'.mp3': MPEG_MIMES, '.mpeg': MPEG_MIMES, '.mpga': MPEG_MIMES, '.mp2': MPEG_MIMES, '.m4a': mp4, '.m4b': mp4, '.aac': {'audio/x-aac', 'audio/aac'}, '.ogg': {'audio/ogg', 'audio/vorbis', 'audio/opus', 'audio/speex', 'audio/x-ogg'}, '.flac': {'audio/flac', 'audio/x-flac'}}
                 if audio is None or not set(audio.mime).intersection(accepted_mimes[suffix]):
                     raise ValueError('Audio contents do not match the file extension.')
                 duration = audio.info.length
