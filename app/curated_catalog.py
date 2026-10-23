@@ -10,8 +10,6 @@ SLUG='5000-names-of-god'
 COMING_SOON=[
     {'slug':'victory-unattended','title':'Victory Unattended','genre':('Fiction','fiction'),
      'synopsis':'A Story of a Struggling Boy. A fictional psychological thriller by David Mozie, and a novel of ambition, survival, identity and healing about the cost of success and the search for peace.'},
-    {'slug':'5000-acts-of-love','title':'5000 Acts of Love','genre':('Romance','romance'),
-     'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
     {'slug':'genius-in-the-dungeon','title':'Genius in the Dungeon','genre':('Fiction','fiction'),
      'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
     {'slug':'star-among-thorns','title':'Star Among Thorns','genre':('Fiction','fiction'),
@@ -20,6 +18,8 @@ COMING_SOON=[
      'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
     {'slug':'the-bank-manager','title':'The Bank Manager','genre':('Non-fiction','non-fiction'),
      'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
+    {'slug':'heritage-of-loss','title':'Heritage of Loss','genre':('Fiction','fiction'),'author':('Usman Oladipo Akanbi','usman-oladipo-akanbi'),
+     'synopsis':'An audiobook by Usman Oladipo Akanbi. More about this story is coming soon.'},
 ]
 # Children's audiobooks by David Mozie, shown on the Children's shelf as well as Featured.
 CHILDREN=[
@@ -53,6 +53,12 @@ def copy_asset(app,book,folder,kind,filename,mime):
 def restore_coming_soon(app,author,spec):
     book=db.session.scalar(db.select(Audiobook).where(Audiobook.slug==spec['slug']))
     if not book:
+        if spec.get('author'):
+            # Titles by other authors carry their own author record.
+            name,slug=spec['author']
+            author=db.session.scalar(db.select(Author).where(Author.slug==slug))
+            if not author:
+                author=Author(name=name,slug=slug);db.session.add(author)
         name,slug=spec['genre']
         category=db.session.scalar(db.select(Category).where(Category.slug==slug))
         if not category:

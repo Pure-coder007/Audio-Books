@@ -1015,26 +1015,6 @@ summary:focus-visible {
     color: var(--muted);
 }
 
-.developer-credit {
-    grid-column: 1 / -1;
-    text-align: center;
-    font-size: 12px;
-    line-height: 1.8;
-    color: var(--muted);
-}
-
-.site-footer .developer-credit .developer-credit-link {
-    display: inline;
-    color: #a67c00;
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-html[data-color-mode=dark] .site-footer .developer-credit .developer-credit-link {
-    color: #e7bd55;
-}
-
 .page-shell {
     padding-block: 45px 85px;
     min-height: 55vh;
@@ -2979,12 +2959,6 @@ html[data-color-mode=dark] .site-footer .social-x{--brand:#f4f4f4;--glow:#ffffff
 .tour-toast{position:fixed;left:50%;bottom:26px;z-index:210;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:14px 18px;border-radius:14px;background:var(--ink);color:var(--paper);font-size:13px;box-shadow:0 18px 40px -14px #000a;opacity:0;transform:translate(-50%,14px);transition:opacity .3s,transform .4s cubic-bezier(.22,1,.36,1)}.tour-toast svg{flex-shrink:0;width:18px;height:18px;fill:none;stroke:var(--lime);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}html[data-color-mode=dark] .tour-toast svg{stroke:#5a7400}.tour-toast-in{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){.tour-spotlight,.tour-card,.tour-card>*,.tour-toast,.tour-launch svg{transition:none!important}.tour-spotlight::after,.tour-chip-dot,.tour-art-spark,.tour-nudge{animation:none!important}.tour-art-wave{animation:none;stroke-dashoffset:0}}
 .tour-card .tour-next:focus-visible{outline:2px solid color-mix(in srgb,var(--lime) 45%,transparent);outline-offset:3px}
-/* Wide transparent logo: size by width and keep its proportions. */
-.site-header .brand-logo{width:220px!important;height:auto!important;aspect-ratio:1728/768;object-fit:contain}
-@media(max-width:1200px){.site-header .brand-logo{width:180px!important}}
-@media(max-width:700px){.site-header .brand-logo{width:150px!important}}
-@media(max-width:400px){.site-header .brand-logo{width:128px!important}}
-.footer-brand img{aspect-ratio:1728/768}
 /* Homepage: "What we do" panel beside the hero copy. */
 .what-we-do{--step-review:#0b7fa8;--step-production:#3f7d1c;--step-translation:#c25a00;--step-publishing:#6b3fd4;position:relative;min-width:0;padding:34px 34px 30px;border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 42%,transparent) 0%,color-mix(in srgb,var(--surface) 30%,transparent) 60%);border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);box-shadow:0 30px 70px -40px #0006,inset 0 1px 0 #ffffff1a;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);overflow:hidden;isolation:isolate}
 html[data-color-mode=dark] .what-we-do{--step-review:#4fd1ff;--step-production:#9be15d;--step-translation:#ff9a3c;--step-publishing:#b99cff}

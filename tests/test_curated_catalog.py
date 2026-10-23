@@ -44,7 +44,7 @@ def test_supplied_coming_soon_titles_are_featured_without_price(app, client):
     with app.app_context():
         restore(app)
         restore(app)
-        for slug in ['victory-unattended', '5000-acts-of-love']:
+        for slug in ['victory-unattended', 'genius-in-the-dungeon']:
             books = db.session.scalars(db.select(Audiobook).where(Audiobook.slug == slug)).all()
             assert len(books) == 1
             book = books[0]
@@ -57,8 +57,8 @@ def test_supplied_coming_soon_titles_are_featured_without_price(app, client):
         assert db.session.scalar(db.select(Audiobook).where(Audiobook.slug == 'victory-unattended')).price_minor == 899
     page = client.get('/featured').data
     # Victory Unattended now has a price, so only the unpriced title stays featured.
-    assert b'5000 Acts of Love' in page and b'Victory Unattended' not in page
-    detail = client.get('/books/5000-acts-of-love')
+    assert b'Genius in the Dungeon' in page and b'Victory Unattended' not in page
+    detail = client.get('/books/genius-in-the-dungeon')
     assert detail.status_code == 200 and b'Coming soon' in detail.data and b'Length TBC' in detail.data
 
 
@@ -74,3 +74,22 @@ def test_supplied_childrens_titles_are_on_childrens_shelf_and_featured(app, clie
     for path in ['/featured', '/books?collection=children', '/genres/children']:
         assert b'The Secret of Being Kind' in client.get(path).data
     assert client.get('/books/the-secret-of-being-kind').status_code == 200
+
+
+def test_coming_soon_title_by_another_author_keeps_its_author(app, client):
+    with app.app_context():
+        restore(app)
+        restore(app)
+        books = db.session.scalars(db.select(Audiobook).where(Audiobook.slug == 'heritage-of-loss')).all()
+        assert len(books) == 1 and books[0].coming_soon and books[0].asset('cover')
+        assert books[0].author.name == 'Usman Oladipo Akanbi'
+        assert not db.session.scalar(db.select(Audiobook).where(Audiobook.slug == '5000-acts-of-love'))
+    page = client.get('/featured').data
+    assert b'Heritage of Loss' in page and b'5000 Acts of Love' not in page
+    assert b'Usman Oladipo Akanbi' in client.get('/books/heritage-of-loss').data
+
+
+def test_footer_has_no_developer_credit(client):
+    page = client.get('/').data
+    assert b'TECHNEST' not in page and b'developer-credit' not in page
+    assert b'width="1535" height="1024"' in page

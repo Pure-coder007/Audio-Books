@@ -20,7 +20,7 @@
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header">
-  <a class="brand" href="{{ url_for('main.home') }}" aria-label="MyAudioShelf home"><img class="brand-logo" src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf" width="1728" height="768" fetchpriority="high"></a>
+  <a class="brand" href="{{ url_for('main.home') }}" aria-label="MyAudioShelf home"><img class="brand-logo" src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf" width="1535" height="1024" fetchpriority="high"></a>
   <button class="nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
   <nav id="main-nav" aria-label="Main navigation">
     <a href="/" class="{{ 'active' if request.endpoint == 'main.home' }}">Home</a>
@@ -38,11 +38,10 @@
 <div id="cart-feedback" class="cart-feedback" role="status" aria-live="polite" hidden></div>
 <main id="main">{% block content %}{% endblock %}</main>
 <footer class="site-footer">
- <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf" width="1728" height="768" loading="lazy"></a><p>Immersive stories.<br>Extraordinary listening.</p><div class="footer-social"><span class="eyebrow">Follow the Shelf</span><ul class="social-links">{% for key, label, url in social_links %}<li><a class="social-link social-{{ key }}" href="{{ url }}" target="_blank" rel="noopener noreferrer me" aria-label="MyAudioShelf on {{ label }} (opens in a new tab)" title="{{ label }}">{{ social_icon(key) }}</a></li>{% endfor %}</ul></div></div>
+ <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf" width="1535" height="1024" loading="lazy"></a><p>Immersive stories.<br>Extraordinary listening.</p><div class="footer-social"><span class="eyebrow">Follow the Shelf</span><ul class="social-links">{% for key, label, url in social_links %}<li><a class="social-link social-{{ key }}" href="{{ url }}" target="_blank" rel="noopener noreferrer me" aria-label="MyAudioShelf on {{ label }} (opens in a new tab)" title="{{ label }}">{{ social_icon(key) }}</a></li>{% endfor %}</ul></div></div>
  <div><span class="eyebrow">Find your story</span><a href="{{ url_for('main.catalog') }}">Browse audiobooks</a><a href="{{ url_for('main.featured') }}">Featured & coming soon</a><a href="{{ url_for('main.catalog', collection='children') }}">Children’s shelf</a><a href="{{ url_for('library.index') }}">My purchases</a></div>
  <div><span class="eyebrow">Make something heard</span><a href="/about">About MyAudioShelf</a><a href="/services">Our services</a><a href="/immersive-audio">Immersive audio</a><a href="/children">MyAudioShelf Kids</a><a href="/originals">Our Originals</a><a href="/innovation">Innovation</a><a href="/contact">Contact</a><a href="{{ url_for('main.production') }}">Authors & publishers</a><a href="{{ url_for('admin.login') }}">Staff sign-in</a><p>Made for stories that stay with you.</p></div>
  <div class="footer-bottom"><div class="footer-policy"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/accessibility">Accessibility</a></div><span>© 2026 MyAudioShelf</span><span>Listen a little. Discover a lot.</span></div>
- <div class="developer-credit">Created and developed with <span role="img" aria-label="love">❤️</span> by <a class="developer-credit-link" href="https://wa.me/2347018562146" target="_blank" rel="noopener noreferrer">TECHNEST SOLUTIONZ</a></div>
 </footer>
 <div id="preview-player" class="preview-player" hidden aria-label="Audiobook trailer player">
  <div class="preview-info"><span class="eyebrow">A little taste of the story</span><strong id="preview-title"></strong></div>
