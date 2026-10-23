@@ -17,12 +17,18 @@ def visible_books():
 
 @bp.get('/')
 def home():
-    books = db.session.scalars(visible_books().where(Audiobook.homepage_visible.is_(True)).order_by(Audiobook.published_at.desc(), Audiobook.id.desc()).limit(36)).all()
-    home_query = visible_books().where(Audiobook.homepage_visible.is_(True))
-    hero = db.session.scalar(home_query.where(Audiobook.hero.is_(True)).order_by(
-        Audiobook.published_at.desc(), Audiobook.id.desc()).limit(1)) or (books[0] if books else None)
-    shelf_books = [book for book in books if not hero or book.id != hero.id][:12]
-    return render_template('home.html', hero=hero, shelf_books=shelf_books)
+    import random
+    from itertools import chain, zip_longest
+    books = db.session.scalars(visible_books().where(Audiobook.homepage_visible.is_(True))).all()
+    random.shuffle(books)
+    # A fresh mix on every visit: take turns across genres so no single genre fills the shelf.
+    by_genre = {}
+    for book in books:
+        by_genre.setdefault(book.categories[0].slug if book.categories else '', []).append(book)
+    groups = list(by_genre.values())
+    random.shuffle(groups)
+    shelf_books = [b for b in chain.from_iterable(zip_longest(*groups)) if b][:12]
+    return render_template('home.html', shelf_books=shelf_books)
 
 @bp.get('/books')
 @bp.get('/genres/<genre_slug>', endpoint='category')

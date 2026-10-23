@@ -21,6 +21,23 @@ COMING_SOON=[
     {'slug':'the-bank-manager','title':'The Bank Manager','genre':('Non-fiction','non-fiction'),
      'synopsis':'An audiobook by David Mozie. More about this story is coming soon.'},
 ]
+# Children's audiobooks by David Mozie, shown on the Children's shelf as well as Featured.
+CHILDREN=[
+    ('dreams-need-hard-work','Dreams Need Hard Work','big dreams and the steady effort it takes to reach them'),
+    ('reading-is-important','Reading Is Important','the joy of books and why reading helps us grow'),
+    ('the-importance-of-going-to-school','The Importance of Going to School','learning, friendship and everything school has to offer'),
+    ('why-i-must-take-care-of-my-schoolbooks','Why I Must Take Care of My Schoolbooks','looking after the books that help us learn'),
+    ('the-secret-of-being-kind','The Secret of Being Kind','how small acts of kindness make a big difference'),
+    ('why-i-must-learn-about-germs','Why I Must Learn About Germs','germs, handwashing and staying healthy'),
+    ('wisdom-begins-with-listening','Wisdom Begins With Listening','listening to others and learning from their stories'),
+    ('the-truth-always-matters','The Truth Always Matters','owning up and telling the truth, even when it is hard'),
+    ('the-reward-of-hard-work','The Reward of Hard Work','patience, effort and the pride of a job well done'),
+    ('the-beauty-of-being-honest','The Beauty of Being Honest','doing the right thing when no one is asking you to'),
+    ('why-i-must-keep-clean','Why I Must Keep Clean','everyday habits that keep us clean and healthy'),
+    ('why-i-must-be-a-child-of-good-character','Why I Must Be a Child of Good Character','respect, helpfulness and good manners'),
+]
+COMING_SOON+=[{'slug':slug,'title':title,'genre':('Children’s','children'),'children':True,
+    'synopsis':f'A children’s audiobook by David Mozie about {theme}. More about this story is coming soon.'} for slug,title,theme in CHILDREN]
 
 def copy_asset(app,book,folder,kind,filename,mime):
     source=Path(app.root_path)/'catalog_assets'/folder/filename
@@ -40,7 +57,7 @@ def restore_coming_soon(app,author,spec):
         category=db.session.scalar(db.select(Category).where(Category.slug==slug))
         if not category:
             category=Category(name=name,slug=slug);db.session.add(category)
-        book=Audiobook(slug=spec['slug'],title=spec['title'],author=author,categories=[category],synopsis=spec['synopsis'],language='English',production_style='Narrated',state='published',saleable=False,featured=True,hero=False,homepage_visible=True,price_minor=0,currency='gbp',published_at=now())
+        book=Audiobook(slug=spec['slug'],title=spec['title'],author=author,categories=[category],synopsis=spec['synopsis'],language='English',production_style='Narrated',state='published',saleable=False,featured=True,hero=False,homepage_visible=True,price_minor=0,currency='gbp',published_at=now(),children=spec.get('children',False))
         db.session.add(book);db.session.flush()
     copy_asset(app,book,spec['slug'],'cover','cover.jpeg','image/jpeg')
     return book

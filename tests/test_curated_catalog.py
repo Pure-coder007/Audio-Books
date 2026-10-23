@@ -16,7 +16,7 @@ def test_supplied_title_replaces_samples_and_is_preview_only(app,client):
         assert book.asset('cover') and book.asset('trailer')
         assert book.asset('trailer').duration_seconds<=60
         assert db.session.scalar(db.select(db.func.count()).select_from(Audiobook).where(Audiobook.slug==book.slug))==1
-    response=client.get('/books')
+    response=client.get('/books?q=5000')
     assert b'5000 Names of God' in response.data
     assert b'Test Book' not in response.data
     # The supplied title is featured without a price, so it is announced as Coming soon.
@@ -60,3 +60,17 @@ def test_supplied_coming_soon_titles_are_featured_without_price(app, client):
     assert b'5000 Acts of Love' in page and b'Victory Unattended' not in page
     detail = client.get('/books/5000-acts-of-love')
     assert detail.status_code == 200 and b'Coming soon' in detail.data and b'Length TBC' in detail.data
+
+
+def test_supplied_childrens_titles_are_on_childrens_shelf_and_featured(app, client):
+    with app.app_context():
+        restore(app)
+        restore(app)
+        books = db.session.scalars(db.select(Audiobook).where(Audiobook.children.is_(True))).all()
+        assert len({b.slug for b in books}) == len(books) >= 12
+        book = db.session.scalar(db.select(Audiobook).where(Audiobook.slug == 'the-secret-of-being-kind'))
+        assert book.coming_soon and not book.saleable and book.asset('cover')
+        assert [c.slug for c in book.categories] == ['children']
+    for path in ['/featured', '/books?collection=children', '/genres/children']:
+        assert b'The Secret of Being Kind' in client.get(path).data
+    assert client.get('/books/the-secret-of-being-kind').status_code == 200

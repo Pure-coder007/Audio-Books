@@ -18,7 +18,7 @@ def test_homepage_shows_each_book_once_even_when_collections_overlap(client, app
     assert response.status_code == 200
     for title in ['Test Book', 'Unique title 0', 'Unique title 1']:
         assert response.data.count(f'alt="{title} cover"'.encode()) == 1
-    assert response.data.count(b'<article class="book-card">') == 2
+    assert response.data.count(b'<article class="book-card">') == 3
     assert b'Follow your curiosity' in response.data
     assert 'What’s your kind of story?'.encode() in response.data
     assert b'genre-tile-fiction' in response.data
@@ -27,7 +27,7 @@ def test_homepage_shows_each_book_once_even_when_collections_overlap(client, app
 def test_homepage_single_book_does_not_repeat_in_shelf(client):
     response = client.get('/')
     assert response.data.count(b'alt="Test Book cover"') == 1
-    assert b'<article class="book-card">' not in response.data
+    assert response.data.count(b'<article class="book-card">') == 1
     assert b'Good stories are on their way.' not in response.data
 
 
@@ -70,3 +70,26 @@ def test_admin_book_pagination_and_signout(admin_client, app):
     assert admin_client.get('/admin/books?q=Test').data.count(b'class="admin-book-row"') == 1
     admin_client.post('/admin/logout')
     assert admin_client.get('/admin/books').location.endswith('/admin/login')
+
+
+def test_homepage_opens_with_what_we_do_instead_of_a_book(client):
+    page = client.get('/').data.decode()
+    top = page.split('class="hero', 1)[1].split('</section>', 1)[0]
+    assert 'What we do' in top and 'hero-feature' not in top
+    for service in ['Audio book review', 'Production', 'Translation', 'Publishing']:
+        assert service in top
+
+
+def test_homepage_shelf_mixes_genres_instead_of_newest_only(client, app):
+    from app.models import Category
+    with app.app_context():
+        original = db.session.get(Audiobook, app.config['TEST_BOOK_ID'])
+        kids = Category(name='Kids', slug='kids')
+        db.session.add(kids)
+        for index in range(12):
+            db.session.add(Audiobook(title=f'Kids title {index}', slug=f'kids-{index}', author=original.author,
+                state='published', homepage_visible=True, categories=[kids], price_minor=0, featured=True))
+        db.session.commit()
+    # Twelve newer books share one genre, yet the other genre's book still gets a place.
+    for _ in range(3):
+        assert b'alt="Test Book cover"' in client.get('/').data
