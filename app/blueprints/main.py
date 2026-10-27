@@ -91,7 +91,9 @@ def book(slug):
         'url': current_app.config['BASE_URL'] + url_for('main.book', slug=book.slug),
         'offers': {'@type': 'Offer', 'price': f'{book.price_minor / 100:.2f}',
             'priceCurrency': book.currency.upper(), 'availability': 'https://schema.org/InStock'}}
-    return render_template('book.html', book=book, related=related, book_schema=schema if not book.is_demo and book.saleable else None)
+    from ..content.legal import RECORDING_NOTICE_AUTHORS
+    return render_template('book.html', book=book, related=related, book_schema=schema if not book.is_demo and book.saleable else None,
+        recording_notice=book.author.slug in RECORDING_NOTICE_AUTHORS)
 
 @bp.post('/books/<string:book_id>/trailer-play')
 @limiter.limit('30 per minute')
@@ -178,7 +180,8 @@ def newsletter():
 @bp.get('/sitemap.xml')
 def sitemap():
     from ..content.company import PAGES
-    pages = [current_app.config['BASE_URL'] + '/' + slug for slug in PAGES] + [current_app.config['BASE_URL'] + url_for('main.contact'), current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.featured'), current_app.config['BASE_URL'] + url_for('main.production')]
+    from ..content.legal import DOCUMENTS
+    pages = [current_app.config['BASE_URL'] + '/' + slug for slug in [*PAGES, *DOCUMENTS]] + [current_app.config['BASE_URL'] + url_for('main.contact'), current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.featured'), current_app.config['BASE_URL'] + url_for('main.production')]
     books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False))).all()
     pages.extend(current_app.config['BASE_URL'] + url_for('main.book', slug=b.slug) for b in books)
     authors = db.session.scalars(db.select(Author).where(Author.id.in_({b.author_id for b in books}))).all()
@@ -186,6 +189,15 @@ def sitemap():
     pages.extend(current_app.config['BASE_URL'] + url_for('main.category', genre_slug=c.slug) for c in categories)
     pages.extend(current_app.config['BASE_URL'] + url_for('main.author', slug=a.slug) for a in authors)
     return Response(render_template('sitemap.xml', pages=pages), mimetype='application/xml')
+
+@bp.get('/privacy')
+@bp.get('/terms')
+@bp.get('/cookies')
+@bp.get('/copyright')
+def legal():
+    from ..content.legal import DOCUMENTS, COMPANY, EFFECTIVE
+    slug = request.path.strip('/')
+    return render_template('legal.html', doc=DOCUMENTS[slug], slug=slug, documents=DOCUMENTS, company=COMPANY, effective=EFFECTIVE)
 
 @bp.get('/robots.txt')
 def robots():
@@ -203,8 +215,6 @@ def health():
 @bp.get('/children')
 @bp.get('/originals')
 @bp.get('/innovation')
-@bp.get('/privacy')
-@bp.get('/terms')
 @bp.get('/accessibility')
 def company():
     from ..content.company import PAGES
