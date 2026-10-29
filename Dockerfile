@@ -9,4 +9,4 @@ COPY --chown=shelf:shelf wsgi.py ./
 RUN mkdir -p /app/instance && chown shelf:shelf /app/instance
 USER shelf
 EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120", "wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "8", "--timeout", "120", "wsgi:app"]

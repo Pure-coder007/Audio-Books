@@ -3,6 +3,9 @@ import os
 import subprocess
 import sys
 
+# Threads let slow listeners and image requests run side by side instead of queuing.
+threads = 8
+
 
 def on_starting(server):
     if os.environ.get('RENDER', '').lower() == 'true':
