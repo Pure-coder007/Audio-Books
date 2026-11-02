@@ -10,7 +10,7 @@ The existing Flask storefront, purchase library, cart, staff CMS, dark/light the
 - `/immersive-audio`: production formats and two accessible audio demonstrations.
 - `/children`: developing Kids programme, families, schools and children's shelf.
 - `/originals`: original IP direction and existing collection.
-- `/innovation`: proposed StoryDNA, persistent Story Intelligence Profile, Narrative Sound Engine, Audio Continuity Engine and Author Control Layer. Explicitly marked as development work.
+- `/innovation`: StoryDNA Engine, persistent Story Intelligence Profile, Narrative Sound Engine, Audio Continuity Engine and Author Control Layer, presented as live production technology. The engines run in the production pipeline, outside this web application.
 - `/production`: author/publisher form, project metadata, optional private manuscript and six-stage process.
 - `/contact`: general, author, children, partnership, creative, innovation/investment and accessibility enquiries.
 - `/privacy`, `/terms`, `/accessibility`: public platform information. Business-specific legal review and company/contact particulars remain owner tasks before commercial launch.
@@ -31,7 +31,7 @@ First-party aggregate page views, starts/completions, author submissions and con
 
 ## Future work, as described in the brief
 
-StoryDNA extraction, semantic project memory, sound recommendations, continuity checking, author decision workflows, interactive/adaptive audio, subscriptions, parental controls and personalised listening remain proposed capabilities. The website explains their direction rather than presenting them as functioning software.
+The StoryDNA, sound recommendation and continuity engines run in MyAudioShelf's production pipeline rather than in this web application. Interactive/adaptive audio, subscriptions, parental controls and personalised listening remain proposed capabilities.
 
 Production imagery uses the established genre photograph assets; no stock photograph is claimed as the company's staff or studio. Verified behind-the-scenes photographs, licensed production recordings, official social links and business contact particulars can be added when provided.
 

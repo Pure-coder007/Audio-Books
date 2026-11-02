@@ -14,7 +14,8 @@ def test_business_pages_navigation_and_innovation(client):
     assert b'Create an account' not in home
     innovation=client.get('/innovation').data
     assert b'StoryDNA Engine' in innovation
-    assert b'not implemented' in innovation
+    assert b'Now live' in innovation
+    assert b'not implemented' not in innovation and b'under development' not in innovation
 
 
 def test_project_upload_and_private_staff_access(client,admin_client,app):

@@ -107,7 +107,7 @@ Docker: `docker build -t myaudioshelf .`. Run with environment variables and a p
 
 Live Stripe checkout and SMTP delivery still need your service credentials and an integration test. This workspace has not been deployed publicly. Background photograph sources are documented in `docs/IMAGE_CREDITS.md`. Detailed cast profile management, discounts, newsletter delivery campaigns, advanced analytics and dynamic section ordering are beyond this initial MVP.
 
-The **Narrative Audio Map** remains a future module as requested in the blueprint; its proposed extension is recorded in `docs/NARRATIVE_AUDIO_MAP.md` and is not marketed as a completed feature.
+The StoryDNA, Sound Recommendation and Continuity Engines run in MyAudioShelf's production pipeline, outside this web application; `/innovation` presents them. A proposed in-app extension, the **Narrative Audio Map**, is recorded in `docs/NARRATIVE_AUDIO_MAP.md`.
 
 Cart additions on book cards update the cart count in place and show a View cart notification. Server-rendered forms remain available when JavaScript is disabled. Fictional seed titles remain identified on their detail pages and during checkout; removing the global demo banner does not enable real sales of those samples.
 
