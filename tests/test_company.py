@@ -16,6 +16,9 @@ def test_business_pages_navigation_and_innovation(client):
     assert b'StoryDNA Engine' in innovation
     assert b'Now live' in innovation
     assert b'not implemented' not in innovation and b'under development' not in innovation
+    nav=home.decode().split('<nav',1)[1].split('</nav>',1)[0]
+    assert 'class="nav-innovation' in nav and 'href="/innovation"' not in nav.split('nav-discover-menu',1)[1]
+    assert 'storydna-home' in home.decode() and 'proposed' not in home.decode()
 
 
 def test_project_upload_and_private_staff_access(client,admin_client,app):

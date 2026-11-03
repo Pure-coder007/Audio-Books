@@ -10,7 +10,7 @@ The existing Flask storefront, purchase library, cart, staff CMS, dark/light the
 - `/immersive-audio`: production formats and two accessible audio demonstrations.
 - `/children`: developing Kids programme, families, schools and children's shelf.
 - `/originals`: original IP direction and existing collection.
-- `/innovation`: StoryDNA Engine, persistent Story Intelligence Profile, Narrative Sound Engine, Audio Continuity Engine and Author Control Layer, presented as live production technology. The engines run in the production pipeline, outside this web application.
+- `/innovation`: StoryDNA Engine, persistent Story Intelligence Profile, Sound Recommendation Engine, Audio Continuity Engine and Author Control Layer, presented as live production technology. The engines run in the production pipeline, outside this web application.
 - `/production`: author/publisher form, project metadata, optional private manuscript and six-stage process.
 - `/contact`: general, author, children, partnership, creative, innovation/investment and accessibility enquiries.
 - `/privacy`, `/terms`, `/accessibility`: public platform information. Business-specific legal review and company/contact particulars remain owner tasks before commercial launch.
