@@ -75,6 +75,15 @@ class Audiobook(db.Model):
         from flask import url_for
         media = self.asset('cover')
         return url_for('main.public_media', media_id=media.id) if media else url_for('static', filename=f'covers/{self.slug}.svg') if self.is_demo else url_for('static', filename='covers/placeholder.svg')
+    def cover_src(self, width):
+        from flask import url_for
+        media = self.asset('cover')
+        return url_for('main.public_media', media_id=media.id, w=width) if media else self.cover_url
+    @property
+    def indexable(self):
+        # A title still showing the placeholder description stays out of search results until a real one is written.
+        from .seo import PLACEHOLDER_SYNOPSIS
+        return not self.is_demo and bool((self.synopsis or '').strip()) and PLACEHOLDER_SYNOPSIS not in self.synopsis
 
 class MediaAsset(db.Model):
     id = db.Column(db.String(32), primary_key=True, default=uid)

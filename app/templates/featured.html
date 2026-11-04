@@ -1,6 +1,6 @@
 {% extends 'base.html' %}{% from 'macros.html' import book_grid %}
-{% block title %}Featured audiobooks — MyAudioShelf{% endblock %}
-{% block description %}Featured MyAudioShelf audiobooks coming soon to the shelf. Be first to hear new releases.{% endblock %}
+{% block title %}Featured & Coming Soon Audiobooks | MyAudioShelf{% endblock %}
+{% block description %}New and upcoming audiobooks from MyAudioShelf, including children’s stories. Play previews where available and be first to hear when each title is released.{% endblock %}
 {% block content %}<div class="section-shell page-shell featured-page">
 <div class="page-heading featured-heading"><span class="eyebrow"><span class="tiny-dot"></span> Hand-picked for your ears</span><h1>Featured.</h1><p>The stories getting ready for the shelf. Prices and release dates are announced here first.</p></div>
 {% if coming_soon %}<section class="shelf-section featured-section" id="coming-soon"><div class="section-heading"><div><span class="eyebrow">On its way to the shelf</span><h2>Coming soon.</h2><p>Play a preview where one is available.</p></div><a class="underlined" href="{{ url_for('main.home') }}#newsletter">Tell me when they’re out ↗</a></div>{{ book_grid(coming_soon) }}</section>

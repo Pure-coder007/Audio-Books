@@ -3094,3 +3094,66 @@ html[data-color-mode=dark] .site-header::before{background:color-mix(in srgb,#14
 .storydna-home{background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 42%,transparent) 0%,color-mix(in srgb,var(--surface) 28%,transparent) 60%);border-color:color-mix(in srgb,var(--ink) 14%,transparent);border-left-color:var(--lime);box-shadow:0 30px 70px -40px #0006,inset 0 1px 0 #ffffff1a;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .storydna-engines li{background:color-mix(in srgb,var(--paper) 34%,transparent);border-color:color-mix(in srgb,var(--ink) 12%,transparent)}
 .storydna-home .context-equation span:not(:last-child){background:color-mix(in srgb,var(--paper) 45%,transparent);border-color:color-mix(in srgb,var(--ink) 16%,transparent)}
+
+/* Search and guides: breadcrumbs, genre introductions, author facts, production terms and the guides pages. */
+.breadcrumbs{margin-bottom:28px;font-size:12px}
+.breadcrumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0;padding:0;list-style:none}
+.breadcrumbs li{display:flex;align-items:center;gap:6px;min-width:0;color:var(--muted)}
+.breadcrumbs li:not(:last-child)::after{content:'/';opacity:.5}
+.breadcrumbs a{color:var(--ink);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--ink) 28%,transparent);text-underline-offset:3px}
+.breadcrumbs a:hover{text-decoration-color:var(--forest)}
+.breadcrumbs [aria-current]{max-width:42ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.genre-intro{max-width:620px;margin:14px 0 0;font-size:15px;line-height:1.75}
+.book-author a{color:inherit}
+.book-author a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.author-page .lead{margin:22px 0 26px}
+.author-facts{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 50px;padding:0}
+.author-facts div{min-width:130px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--surface,var(--paper)) 70%,transparent)}
+.author-facts dt{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.author-facts dd{margin:3px 0 0;font-size:22px;font-weight:650;letter-spacing:-.02em}
+.company-details,.production-terms{padding-top:30px}
+.company-details>h2,.production-terms>h2{font-size:clamp(30px,4vw,49px);letter-spacing:-.04em;margin:18px 0 0}
+.production-terms .editorial-row{grid-template-columns:35px 1fr 1.2fr;gap:25px}
+.production-guide{margin:-35px 0 60px;font-size:15px}
+.company-cta>p{max-width:640px}
+.resource-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;margin:10px 0 60px;padding:0;list-style:none}
+.resource-card{display:flex;flex-direction:column;height:100%;padding:28px;border:1px solid color-mix(in srgb,var(--ink) 12%,transparent);border-radius:18px;background:color-mix(in srgb,var(--surface) 55%,transparent);transition:transform .25s,border-color .25s,box-shadow .25s}
+.resource-card:hover{transform:translateY(-3px);border-color:var(--forest);box-shadow:0 22px 50px -30px #0008;color:inherit}
+.resource-card h2,.resource-card h3{font-size:24px;letter-spacing:-.03em;margin:6px 0 14px}
+.resource-card p{flex:1;font-size:15px;line-height:1.7}
+.resource-more{font-size:13px;font-weight:600}
+.article{max-width:760px}
+.article-head h1{font-size:clamp(36px,4.6vw,60px);letter-spacing:-.045em;line-height:1.08;margin:20px 0}
+.article-head .lead{max-width:none}
+.article-meta{margin:0 0 40px;padding-bottom:28px;border-bottom:1px solid var(--line);font-size:13px}
+.article-body h2{font-size:clamp(24px,2.6vw,32px);letter-spacing:-.03em;margin:46px 0 16px}
+.article-body p,.article-body li{font-size:17px;line-height:1.85;color:color-mix(in srgb,var(--ink) 86%,transparent)}
+.article-body ul{margin:0 0 24px;padding-left:22px}
+.article-body li{margin-bottom:10px}
+.article-body b{color:var(--ink)}
+.article-body a{color:var(--forest);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.article-more{margin-top:30px;padding-top:40px;border-top:1px solid var(--line)}
+.article-more h2{margin-bottom:24px}
+@media(prefers-reduced-motion:reduce){.resource-card{transition:none}.resource-card:hover{transform:none}}
+@media(max-width:700px){.resource-grid{grid-template-columns:1fr}.resource-card{padding:22px}.article-body p,.article-body li{font-size:16px}.production-terms .editorial-row{grid-template-columns:25px 1fr;gap:12px}.production-terms .editorial-row p{grid-column:2}.author-facts dd{font-size:19px}.production-guide{margin-top:-20px}}
+
+/* Analytics consent: shown only when Google Analytics is configured. Accept and Decline carry equal weight. */
+.consent-card{position:fixed;left:20px;bottom:20px;z-index:72;width:min(400px,calc(100vw - 24px));padding:20px 22px;border-radius:20px;color:var(--ink);background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent);box-shadow:0 28px 64px -22px rgba(6,12,8,.7),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;transform:translateY(18px);transition:opacity .35s cubic-bezier(.22,1,.36,1),transform .35s cubic-bezier(.22,1,.36,1)}
+.consent-card.consent-in{opacity:1;transform:none}
+.consent-title{margin:0 0 6px;color:var(--ink);font-size:16px;font-weight:650;letter-spacing:-.01em}
+.consent-text{margin:0 0 16px;font-size:13px;line-height:1.6}
+.consent-text a{color:var(--forest);text-decoration:underline;text-underline-offset:3px}
+.consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.consent-actions .button{justify-content:center;width:100%;margin:0;padding-inline:12px;font-size:13px}
+.footer-cookie-settings{padding:0;border:0;background:none;color:inherit;font-size:12px;cursor:pointer}
+.footer-cookie-settings:hover{color:var(--forest)}
+@media(max-width:560px){.consent-card{left:12px;right:12px;bottom:12px;width:auto}}
+@media(prefers-reduced-motion:reduce){.consent-card{transition:none;transform:none}}
+
+/* Readable small print on phones: search engines treat text under 12px as illegible on mobile. */
+@media(max-width:700px){.footer-bottom,.catalog-list .cover-cta,.book-author,.paper-caption,.footer-app small{font-size:12px}}
+.author-page .lead a,.author-page .shelf-section>p a,.production-guide a,.company-cta>p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--forest);text-decoration-thickness:1px;text-underline-offset:4px}
+.author-page .lead a:hover,.author-page .shelf-section>p a:hover,.production-guide a:hover,.company-cta>p a:hover{color:var(--forest)}
+.article{padding:clamp(22px,4.5vw,52px);border-radius:24px;background:color-mix(in srgb,var(--paper) 78%,transparent);-webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);box-shadow:0 30px 70px -45px #0008}
+.article-head h1{margin-top:14px}
+@media(max-width:560px){.article{margin-inline:-6px;border-radius:18px}}

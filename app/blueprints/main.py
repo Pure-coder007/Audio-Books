@@ -6,11 +6,13 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from ..extensions import db, limiter
 from ..models import Audiobook, Author, Category, MediaAsset, ProductionEnquiry, NewsletterSubscriber, AnalyticsEvent
+from .. import seo
 from ..services.access_service import normalize_email
-from ..services.media_service import media_path
+from ..services.media_service import media_path, cover_variant
 from ..services.analytics_service import record_after_response
 
 bp = Blueprint('main', __name__)
+COVER_WIDTHS = {360, 720}
 
 def published_books():
     query = db.select(Audiobook).where(Audiobook.state == 'published')
@@ -21,6 +23,11 @@ def published_books():
 def visible_books():
     # Load a shelf's authors, genres and media in one query apiece rather than one query per book.
     return published_books().options(selectinload(Audiobook.author), selectinload(Audiobook.categories), selectinload(Audiobook.media))
+
+def shelf_genres():
+    # Genres with at least one book on the shelf, so visitors are never sent to an empty page.
+    used = published_books().join(Audiobook.categories).with_only_columns(Category.id)
+    return db.session.scalars(db.select(Category).where(Category.id.in_(used)).order_by(Category.position, Category.name)).all()
 
 @bp.get('/')
 def home():
@@ -73,8 +80,13 @@ def catalog(genre_slug=None):
     sorting = {'newest': Audiobook.published_at.desc(), 'featured': Audiobook.featured.desc(),
         'title': Audiobook.title.asc(), 'price': Audiobook.price_minor.asc()}
     page = db.paginate(query.order_by(sorting.get(sort, Audiobook.published_at.desc()), Audiobook.id), per_page=10, error_out=False)
+    if page.page > 1 and not page.items:
+        abort(404)
     facets = db.session.execute(published_books().with_only_columns(Audiobook.language, Audiobook.age_range)).all()
-    return render_template('catalog.html', page=page, q=q, selected_genre=selected_genre,
+    canonical, noindex = seo.listing_state(request.args, genre_slug, selected_genre, page)
+    trail = [('Home', '/'), ('Audiobooks', url_for('main.catalog'))] + ([(selected_genre.name, url_for('main.category', genre_slug=selected_genre.slug))] if genre_slug else [])
+    return render_template('catalog.html', page=page, q=q, selected_genre=selected_genre, canonical=canonical, noindex=noindex,
+        schema=None if noindex else seo.graph(seo.breadcrumbs(*trail)),
         languages=sorted({b.language for b in facets}), ages=sorted({b.age_range for b in facets if b.age_range}))
 
 @bp.get('/featured')
@@ -92,14 +104,13 @@ def book(slug):
     after_this_request(lambda response: record_after_response(response, book_id=book.id, kind='book_view'))
     related = db.session.scalars(visible_books().where(Audiobook.id != book.id,
         or_(Audiobook.author_id == book.author_id, Audiobook.categories.any(Category.id.in_([c.id for c in book.categories])))).limit(4)).all()
-    schema = {'@context': 'https://schema.org', '@type': 'Book', 'name': book.title,
-        'description': book.synopsis, 'author': {'@type': 'Person', 'name': book.author.name},
-        'inLanguage': book.language, 'image': current_app.config['BASE_URL'] + book.cover_url,
-        'url': current_app.config['BASE_URL'] + url_for('main.book', slug=book.slug),
-        'offers': {'@type': 'Offer', 'price': f'{book.price_minor / 100:.2f}',
-            'priceCurrency': book.currency.upper(), 'availability': 'https://schema.org/InStock'}}
+    trail = [('Home', '/'), ('Audiobooks', url_for('main.catalog'))]
+    if book.categories:
+        trail.append((book.categories[0].name, url_for('main.category', genre_slug=book.categories[0].slug)))
+    trail.append((book.title, url_for('main.book', slug=book.slug)))
     from ..content.legal import RECORDING_NOTICE_AUTHORS
-    return render_template('book.html', book=book, related=related, book_schema=schema if not book.is_demo and book.saleable else None,
+    return render_template('book.html', book=book, related=related, trail=trail, noindex=not book.indexable, description=seo.book_description(book),
+        schema=None if book.is_demo else seo.graph(seo.book_schema(book), seo.breadcrumbs(*trail)),
         recording_notice=book.author.slug in RECORDING_NOTICE_AUTHORS)
 
 @bp.post('/books/<string:book_id>/trailer-play')
@@ -122,15 +133,42 @@ def public_media(media_id):
     path = media_path(asset)
     if not path.is_file():
         abort(404)
+    width = request.args.get('w', type=int)
+    if width is not None:
+        # Page-sized WebP covers. A new upload gets a new media id, so the copy can be cached for a month.
+        if asset.kind != 'cover' or width not in COVER_WIDTHS:
+            abort(404)
+        return send_file(cover_variant(path, width), mimetype='image/webp', conditional=True, max_age=30 * 24 * 3600)
     return send_file(path, mimetype=asset.mime_type, conditional=True, max_age=3600)
 
 @bp.get('/authors/<slug>')
 def author(slug):
     author = db.session.scalar(db.select(Author).where(Author.slug == slug))
-    if not author:
+    books = db.session.scalars(visible_books().where(Audiobook.author_id == author.id)
+        .order_by(Audiobook.published_at.desc(), Audiobook.id)).all() if author else []
+    # An author with nothing on the shelf, such as an old sample profile, has no page.
+    if not books:
         abort(404)
-    books = db.session.scalars(visible_books().where(Audiobook.author_id == author.id)).all()
-    return render_template('author.html', author=author, books=books)
+    available = [b for b in books if not b.coming_soon]
+    coming = [b for b in books if b.coming_soon]
+    genres = list({c.slug: c for b in books for c in b.categories}.values())
+    narrated = sum(1 for b in books if b.narrator == author.name)
+    names = [b.title for b in (available or coming)[:3]]
+    listing = ', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]
+    description = seo.summary(author.bio) if author.bio else seo.summary(f'Audiobooks by {author.name} on MyAudioShelf, including {listing}.'
+        + (f' {len(coming)} more coming soon.' if coming and available else '') + ' Play free previews and listen online.')
+    trail = [('Home', '/'), ('Audiobooks', url_for('main.catalog')), (author.name, url_for('main.author', slug=author.slug))]
+    url = seo.absolute(url_for('main.author', slug=author.slug))
+    person = {'@type': 'Person', '@id': url + '#person', 'name': author.name, 'url': url, **({'description': author.bio} if author.bio else {})}
+    schema = seo.graph({'@type': 'ProfilePage', '@id': url, 'url': url, 'name': f'{author.name} audiobooks', 'mainEntity': person}, seo.breadcrumbs(*trail))
+    return render_template('author.html', author=author, available=available, coming=coming, genres=genres, narrated=narrated,
+        description=description, trail=trail, schema=schema)
+
+def recent_productions(limit=4):
+    # Audiobooks MyAudioShelf recorded and has on sale: real examples of the production work.
+    from ..content.legal import RECORDING_NOTICE_AUTHORS
+    return db.session.scalars(visible_books().where(Audiobook.saleable.is_(True), Audiobook.price_minor > 0,
+        Audiobook.author.has(Author.slug.in_(RECORDING_NOTICE_AUTHORS))).order_by(Audiobook.published_at.desc(), Audiobook.id).limit(limit)).all()
 
 @bp.route('/production', methods=['GET', 'POST'])
 @limiter.limit('10 per hour', methods=['POST'])
@@ -161,10 +199,17 @@ def production():
                 if attachment: (Path(current_app.config['MEDIA_ROOT']) / attachment[0]).unlink(missing_ok=True)
                 raise
             flash('Your project is on our desk. The production team will review your enquiry.', 'success')
+            flash('generate_lead', 'analytics')
             return redirect(url_for('main.production'))
         except ValueError as error:
             flash(str(error), 'error')
-    return render_template('production.html')
+    trail = [('Home', '/'), ('Audiobook production', url_for('main.production'))]
+    return render_template('production.html', productions=recent_productions(), trail=trail,
+        schema=seo.graph(seo.breadcrumbs(*trail), service_schema('Audiobook production for authors and publishers', url_for('main.production'))))
+
+def service_schema(name, path):
+    return {'@type': 'Service', 'name': name, 'url': seo.absolute(path), 'provider': seo.organization_ref(), 'areaServed': 'Worldwide',
+        'serviceType': ['Audiobook narration', 'Audiobook editing and mastering', 'Sound design', 'Dramatised audiobook production', 'Audiobook translation', 'Audiobook publishing']}
 
 @bp.post('/newsletter')
 @limiter.limit('10 per hour')
@@ -176,6 +221,7 @@ def newsletter():
         if not db.session.scalar(db.select(NewsletterSubscriber).where(NewsletterSubscriber.email == email)):
             db.session.add(NewsletterSubscriber(email=email, first_name=request.form.get('first_name', '').strip()[:100]))
             db.session.commit()
+            flash('sign_up', 'analytics')
         flash('You’re on the list. Welcome to the Shelf.', 'success')
     except IntegrityError:
         db.session.rollback()
@@ -186,15 +232,19 @@ def newsletter():
 
 @bp.get('/sitemap.xml')
 def sitemap():
+    # Every page meant to rank, and only those: no searches, filters, private areas or titles still waiting on a description.
     from ..content.company import PAGES
     from ..content.legal import DOCUMENTS
-    pages = [current_app.config['BASE_URL'] + '/' + slug for slug in [*PAGES, *DOCUMENTS]] + [current_app.config['BASE_URL'] + url_for('main.contact'), current_app.config['BASE_URL'] + url_for('main.home'), current_app.config['BASE_URL'] + url_for('main.catalog'), current_app.config['BASE_URL'] + url_for('main.featured'), current_app.config['BASE_URL'] + url_for('main.production')]
-    books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False))).all()
-    pages.extend(current_app.config['BASE_URL'] + url_for('main.book', slug=b.slug) for b in books)
-    authors = db.session.scalars(db.select(Author).where(Author.id.in_({b.author_id for b in books}))).all()
-    categories = db.session.scalars(db.select(Category).where(Category.id.in_({c.id for b in books for c in b.categories}))).all()
-    pages.extend(current_app.config['BASE_URL'] + url_for('main.category', genre_slug=c.slug) for c in categories)
-    pages.extend(current_app.config['BASE_URL'] + url_for('main.author', slug=a.slug) for a in authors)
+    from ..content.articles import ARTICLES
+    page = lambda path, lastmod=None, image=None: {'loc': seo.absolute(path), 'lastmod': lastmod, 'image': image and seo.absolute(image)}
+    books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False)).order_by(Audiobook.title)).all()
+    pages = [page(url_for('main.home')), page(url_for('main.catalog')), page(url_for('main.featured')), page(url_for('main.production')),
+        *(page('/' + slug) for slug in PAGES), page(url_for('main.resources'), max(a['updated'] for a in ARTICLES.values())),
+        *(page(url_for('main.article', slug=slug), article['updated']) for slug, article in ARTICLES.items()),
+        page(url_for('main.contact')), *(page('/' + slug) for slug in DOCUMENTS)]
+    pages += [page(url_for('main.book', slug=b.slug), image=b.cover_url) for b in books if b.indexable]
+    pages += [page(url_for('main.category', genre_slug=c.slug)) for c in sorted({c.slug: c for b in books for c in b.categories}.values(), key=lambda c: (c.position, c.name))]
+    pages += [page(url_for('main.author', slug=a.slug)) for a in sorted({b.author.slug: b.author for b in books}.values(), key=lambda a: a.name)]
     return Response(render_template('sitemap.xml', pages=pages), mimetype='application/xml')
 
 @bp.get('/privacy')
@@ -202,13 +252,21 @@ def sitemap():
 @bp.get('/cookies')
 @bp.get('/copyright')
 def legal():
-    from ..content.legal import DOCUMENTS, COMPANY, EFFECTIVE
+    from ..content.legal import DOCUMENTS, COMPANY, EFFECTIVE, ANALYTICS_COOKIES
     slug = request.path.strip('/')
-    return render_template('legal.html', doc=DOCUMENTS[slug], slug=slug, documents=DOCUMENTS, company=COMPANY, effective=EFFECTIVE)
+    doc = DOCUMENTS[slug]
+    if slug == 'cookies' and current_app.config['GA_MEASUREMENT_ID']:
+        # With Google Analytics switched on, the policy describes its cookies instead of saying there are none.
+        doc = dict(doc, document=[ANALYTICS_COOKIES if heading == ANALYTICS_COOKIES[0] else (heading, blocks) for heading, blocks in doc['document']])
+    return render_template('legal.html', doc=doc, slug=slug, documents=DOCUMENTS, company=COMPANY, effective=EFFECTIVE)
 
 @bp.get('/robots.txt')
 def robots():
-    return Response('User-agent: *\nDisallow: /admin\nDisallow: /library\nDisallow: /checkout\nDisallow: /cart\nSitemap: ' + current_app.config['BASE_URL'] + '/sitemap.xml\n', mimetype='text/plain')
+    # Staff, cart and account pages stay crawlable so search engines can read their noindex header;
+    # a blocked page that other pages link to can still be listed by its address alone.
+    rules = ['User-agent: *', 'Allow: /', 'Disallow: /checkout/', 'Disallow: /library/', 'Disallow: /media/private/', 'Disallow: /cart/',
+        '', 'Sitemap: ' + seo.absolute('/sitemap.xml')]
+    return Response('\n'.join(rules) + '\n', mimetype='text/plain')
 
 @bp.get('/merchant-feed.xml')
 def merchant_feed():
@@ -265,14 +323,37 @@ def health():
 @bp.get('/innovation')
 @bp.get('/accessibility')
 def company():
-    from ..content.company import PAGES
+    from ..content.company import PAGES, DETAILS
     slug = request.path.strip('/')
     books = []
     if slug in {'children','originals'}:
         flag = Audiobook.children if slug == 'children' else Audiobook.original
         books = db.session.scalars(visible_books().where(flag.is_(True)).limit(4)).all()
     comparison = next((b for b in db.session.scalars(visible_books()).all() if b.asset('compare_plain') and b.asset('compare_immersive')), None) if slug == 'immersive-audio' else None
-    return render_template('company.html', content=PAGES[slug], slug=slug, collection_books=books, comparison=comparison)
+    content = PAGES[slug]
+    trail = [('Home', '/'), (content['title'], '/' + slug)]
+    service = service_schema('Audiobook and audio production services', '/services') if slug == 'services' else None
+    return render_template('company.html', content=content, details=DETAILS.get(slug), slug=slug, collection_books=books, comparison=comparison, trail=trail,
+        productions=recent_productions() if slug in {'services', 'immersive-audio'} else [], schema=seo.graph(seo.breadcrumbs(*trail), service))
+
+@bp.get('/resources')
+def resources():
+    from ..content.articles import ARTICLES
+    trail = [('Home', '/'), ('Guides & resources', url_for('main.resources'))]
+    return render_template('resources.html', articles=ARTICLES, trail=trail, schema=seo.graph(seo.breadcrumbs(*trail)))
+
+@bp.get('/resources/<slug>')
+def article(slug):
+    from ..content.articles import ARTICLES
+    article = ARTICLES.get(slug) or abort(404)
+    trail = [('Home', '/'), ('Guides & resources', url_for('main.resources')), (article['title'], url_for('main.article', slug=slug))]
+    url = seo.absolute(url_for('main.article', slug=slug))
+    schema = seo.graph({'@type': 'Article', '@id': url + '#article', 'headline': article['title'], 'description': article['summary'], 'url': url,
+        'mainEntityOfPage': url, 'datePublished': article['published'], 'dateModified': article['updated'], 'inLanguage': 'en-GB',
+        'image': seo.absolute(url_for('static', filename='images/app/share.jpg')), 'author': seo.organization_ref(), 'publisher': seo.organization_ref()},
+        seo.breadcrumbs(*trail))
+    more = [(key, other) for key, other in ARTICLES.items() if key != slug][:3]
+    return render_template('article.html', article=article, slug=slug, more=more, trail=trail, schema=schema)
 
 @bp.route('/contact', methods=['GET','POST'])
 @limiter.limit('10 per hour', methods=['POST'])
@@ -291,6 +372,7 @@ def contact():
             db.session.add(AnalyticsEvent(kind='contact_submission'))
             db.session.commit()
             flash('Your enquiry has been received. Our team will review your message.', 'success')
+            flash('generate_lead', 'analytics')
             return redirect(url_for('main.contact'))
         except ValueError as error:flash(str(error),'error')
     return render_template('contact.html', enquiry_types=ENQUIRY_TYPES)

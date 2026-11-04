@@ -251,6 +251,13 @@ TERMS = [
     ]),
 ]
 
+# Replaces the cookie policy's analytics section while GA_MEASUREMENT_ID is set.
+ANALYTICS_COOKIES = ('Analytics and marketing', [
+    ('p', 'With your consent, we use Google Analytics to understand how visitors find and use the website, for example which pages are visited and which audiobook previews are played. This helps us improve the website and our catalogue.'),
+    ('p', 'Google Analytics sets cookies named <b>_ga</b> and <b>_ga_</b> followed by an identifier, which last for up to two years. They are only set after you choose <b>Accept analytics</b>, and Google processes the information on our behalf. We do not use advertising or social media tracking cookies.'),
+    ('p', 'You can change your choice at any time with the <b>Cookie settings</b> button at the foot of every page. We also count page views and audio previews on our own servers without placing cookies.'),
+])
+
 # Describes what the site actually stores today; update it if analytics or marketing tools are added.
 COOKIES = [
     ('About this policy', [

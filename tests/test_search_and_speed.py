@@ -58,9 +58,12 @@ def test_homepage_names_the_site_for_search_engines(client):
 
 def test_every_page_has_one_link_preview(app, client):
     assert Image.open(STATIC / 'images' / 'app' / 'share.jpg').size == (1200, 630)
-    for path, title, image in [('/', 'MyAudioShelf — Stories worth listening to', 'share.jpg'),
-            ('/books/test-book', 'Test Book', '/static/covers/placeholder.svg'), ('/about', 'About MyAudioShelf — MyAudioShelf', 'share.jpg')]:
+    for path, title, image in [('/', 'MyAudioShelf | Immersive Audiobooks, Children’s Audio & Production', 'share.jpg'),
+            ('/books/test-book', 'Test Book by Test Author', '/static/covers/placeholder.svg'),
+            ('/about', 'About MyAudioShelf – Immersive Audio Storytelling | MyAudioShelf', 'share.jpg')]:
         html = client.get(path).get_data(as_text=True)
         assert re.findall(r'<meta property="og:title" content="([^"]*)"', html) == [title]
+        assert re.findall(r'<meta name="twitter:title" content="([^"]*)"', html) == [title]
         images = re.findall(r'<meta property="og:image" content="([^"]*)"', html)
-        assert len(images) == 1 and images[0].endswith(image)
+        assert len(images) == 1 and images[0].split('?')[0].endswith(image)
+        assert re.findall(r'<meta name="twitter:image" content="([^"]*)"', html) == images

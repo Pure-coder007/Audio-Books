@@ -1,4 +1,5 @@
 import io
+import os
 from pathlib import Path
 from uuid import uuid4
 from flask import current_app
@@ -16,6 +17,19 @@ MPEG_MIMES = {'audio/mpeg', 'audio/mp3', 'audio/mpg', 'audio/x-mpeg', 'audio/mp2
 def media_path(asset):
     from .storage_service import path_for
     return path_for(asset.storage_key)
+
+def cover_variant(path, width):
+    """A WebP copy of a cover at a display width, made on first request and kept beside the cached original."""
+    variant = path.parent / 'variants' / f'{path.stem}-{width}.webp'
+    if not variant.is_file():
+        variant.parent.mkdir(parents=True, exist_ok=True)
+        temporary = variant.with_name(f'.{uuid4().hex}.webp')
+        with Image.open(path) as image:
+            image = image.convert('RGB')
+            image.thumbnail((width, width * 3))
+            image.save(temporary, format='WEBP', quality=80, method=5)
+        os.replace(temporary, variant)
+    return variant
 
 def store_upload(upload, book, kind):
     suffix = Path(upload.filename or '').suffix.lower()

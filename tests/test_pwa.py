@@ -7,8 +7,9 @@ STATIC = Path(__file__).resolve().parent.parent / 'app' / 'static'
 
 
 def static_file(url):
+    # Static URLs carry a ?v= content hash for long browser caching.
     assert url.startswith('/static/')
-    return STATIC / url.removeprefix('/static/')
+    return STATIC / url.removeprefix('/static/').split('?')[0]
 
 
 def test_manifest_makes_the_site_installable(client):

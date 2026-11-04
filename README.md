@@ -172,3 +172,17 @@ MyAudioShelf installs as an app on phones, tablets and computers from `/manifest
 The service worker (`/sw.js`, from `app/static/js/sw.js`) keeps covers and site images on the device and shows a branded page instead of an error when a visitor is offline or Render is redeploying. It never stores pages, which carry per-visitor security tokens, and never touches purchased audio, downloads, checkout or staff pages. After changing cached images in place, raise `ARTWORK_CACHE`'s version number so devices fetch them again.
 
 To show someone the card without waiting, add `?install-preview=app`, `ios`, `mac` or `firefox` to any page address. Previews change nothing on the visitor's device.
+
+### Search engines
+
+Every public page has its own title, description and canonical address, and the sitemap at `/sitemap.xml` lists only pages meant to rank, with book covers as images. Searches, filters and sorted views of the bookshelf, empty genres, and error pages are marked `noindex`; private areas send a `noindex` header and stay crawlable so search engines can read it. `/books/` and other addresses with a trailing slash redirect to the address without one.
+
+A book page stays out of Google while its description still says "More about this story is coming soon." Write a real description in the studio and it is listed automatically. The dashboard's **Search readiness** panel lists those books, titles with no narrator, and authors without a biography (add one, with the author's permission, from the "About the author" box in any of their books).
+
+Pages carry schema.org data: `Audiobook` with `Product` and `Offer` for titles on sale (the same id, price and no-returns policy as the Merchant Center feed), `ProfilePage` for authors, `Article` for guides, `Service` for production pages and breadcrumbs throughout. Genre titles, descriptions and introductions live in `app/genre_themes.py`; the service pages' explanations in `DETAILS` in `app/content/company.py`.
+
+Guides at `/resources` come from `app/content/articles.py`. Add a guide by adding an entry there; it appears on the guides page and in the sitemap. Change `updated` whenever its text changes.
+
+Static files are served with a content hash (`?v=`) and cached for a year, so a deploy is picked up straight away. Covers are served as 360px and 720px WebP copies (`/media/public/<id>?w=360`), made on first request and kept beside the cached original.
+
+To use Google Analytics 4, set `GA_MEASUREMENT_ID` (for example `G-ABC123XYZ`) on Render. Visitors then see a consent card, and Google's tag loads only after they choose **Accept analytics**; the cookie policy describes the cookies automatically, and a "Cookie settings" button in the footer lets visitors change their choice. Purchases, enquiries, newsletter sign-ups and preview plays are sent as events. Without the variable, no analytics code or prompt is served.

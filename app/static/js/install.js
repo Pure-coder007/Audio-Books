@@ -194,7 +194,7 @@
   // Never interrupt an open menu, a form being filled in or a hidden tab.
   function attempt() {
     const typing = document.activeElement?.matches('input, textarea, select');
-    const menuOpen = document.querySelector('#main-nav.open, .nav-discover[open]');
+    const menuOpen = document.querySelector('#main-nav.open, .nav-discover[open], .consent-card');
     if (document.hidden || typing || menuOpen) timer = setTimeout(attempt, 5000);
     else show();
   }

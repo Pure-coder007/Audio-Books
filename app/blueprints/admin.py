@@ -105,7 +105,11 @@ def dashboard():
         'subscribers': db.session.scalar(db.select(db.func.count()).select_from(NewsletterSubscriber)),
         'queued_email': db.session.scalar(db.select(db.func.count()).select_from(EmailDelivery).where(EmailDelivery.status == 'queued'))}
     top_titles = db.session.execute(db.select(Audiobook.title, db.func.count(PurchaseEntitlement.id)).join(PurchaseEntitlement).where(PurchaseEntitlement.active.is_(True)).group_by(Audiobook.id).order_by(db.func.count(PurchaseEntitlement.id).desc()).limit(5)).all()
-    return render_template('admin/dashboard.html', orders=orders, revenue=revenue, counts=counts, top_titles=top_titles)
+    # What keeps published pages out of Google, or makes them thin, with a link to fix each one.
+    live = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False)).order_by(Audiobook.title)).all()
+    search = {'hidden': [b for b in live if not b.indexable], 'no_narrator': [b for b in live if not b.coming_soon and not b.narrator],
+        'no_bio': list({b.author.slug: b for b in live if not (b.author.bio or '').strip()}.values())}
+    return render_template('admin/dashboard.html', orders=orders, revenue=revenue, counts=counts, top_titles=top_titles, search=search)
 
 @bp.get('/books')
 @admin_required()
@@ -169,7 +173,8 @@ def edit_book(book_id=None):
                 db.session.add(author)
             else:
                 author.name = author_name
-                if 'author_bio' in request.form:
+                # A new book's empty biography box must not erase the biography the author already has.
+                if text('author_bio', 10000) or (book and book.author_id == author.id and 'author_bio' in request.form):
                     author.bio = text('author_bio', 10000)
             if not book:
                 book = Audiobook(title=title, slug=slug, author=author)

@@ -17,7 +17,7 @@ def test_homepage_shows_each_book_once_even_when_collections_overlap(client, app
     response = client.get('/')
     assert response.status_code == 200
     for title in ['Test Book', 'Unique title 0', 'Unique title 1']:
-        assert response.data.count(f'alt="{title} cover"'.encode()) == 1
+        assert response.data.count(f'alt="{title} by Test Author, audiobook cover"'.encode()) == 1
     assert response.data.count(b'<article class="book-card">') == 3
     assert b'Follow your curiosity' in response.data
     assert 'What’s your kind of story?'.encode() in response.data
@@ -26,7 +26,7 @@ def test_homepage_shows_each_book_once_even_when_collections_overlap(client, app
 
 def test_homepage_single_book_does_not_repeat_in_shelf(client):
     response = client.get('/')
-    assert response.data.count(b'alt="Test Book cover"') == 1
+    assert response.data.count(b'alt="Test Book by Test Author, audiobook cover"') == 1
     assert response.data.count(b'<article class="book-card">') == 1
     assert b'Good stories are on their way.' not in response.data
 
@@ -92,4 +92,4 @@ def test_homepage_shelf_mixes_genres_instead_of_newest_only(client, app):
         db.session.commit()
     # Twelve newer books share one genre, yet the other genre's book still gets a place.
     for _ in range(3):
-        assert b'alt="Test Book cover"' in client.get('/').data
+        assert b'alt="Test Book by Test Author, audiobook cover"' in client.get('/').data

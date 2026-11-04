@@ -1,9 +1,13 @@
 import os
+import re
+import hashlib
 import secrets
 from collections.abc import Sequence
+from functools import cache
 from pathlib import Path
 from datetime import timedelta
-from flask import Flask, render_template, session, request, g
+from flask import Flask, render_template, session, request, g, redirect
+from werkzeug.exceptions import HTTPException
 from flask_wtf.csrf import CSRFError, generate_csrf
 from .config import Config
 from .extensions import db, migrate, csrf, limiter
@@ -46,6 +50,8 @@ def create_app(test_config=None):
             raise RuntimeError('Production BASE_URL must use HTTPS.')
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['DEMO_MODE'] = False
+    if app.config.get('GA_MEASUREMENT_ID') and not re.fullmatch(r'G-[A-Z0-9]{4,20}', app.config['GA_MEASUREMENT_ID']):
+        raise RuntimeError('GA_MEASUREMENT_ID must look like G-XXXXXXXXXX.')
     from .services.storage_service import validate_config, StorageError
     validate_config(app.config)
     @app.errorhandler(StorageError)
@@ -112,11 +118,33 @@ def create_app(test_config=None):
 
     @app.context_processor
     def shared():
-        from .models import Category
-        from .genre_themes import genre_theme
+        from .genre_themes import genre_theme, genre_copy
         from .content.company import SOCIAL_LINKS
-        return {'genre_theme': genre_theme, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(lambda: db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()),
+        from .blueprints.main import shelf_genres
+        return {'genre_theme': genre_theme, 'genre_copy': genre_copy, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(shelf_genres),
             'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE']}
+    @app.template_filter('long_date')
+    def long_date(value):
+        from datetime import date
+        day = date.fromisoformat(value)
+        return f'{day.day} {day:%B %Y}'
+    @app.template_filter('summary')
+    def summary(text, limit=158):
+        from .seo import summary
+        return summary(text, limit)
+
+    @cache
+    def static_version(filename):
+        path = Path(app.static_folder) / filename
+        return hashlib.sha1(path.read_bytes()).hexdigest()[:10] if path.is_file() else None
+    @app.url_defaults
+    def versioned_static(endpoint, values):
+        # A content hash in every static URL lets browsers keep files for a year and still see changes after a deploy.
+        if endpoint == 'static' and 'v' not in values and (version := static_version(values.get('filename', ''))):
+            values['v'] = version
+    def static_max_age(filename):
+        return 365 * 24 * 3600 if request.args.get('v') else None
+    app.get_send_file_max_age = static_max_age
     @app.template_filter('reject_page')
     def reject_page(args):
         return {key: value for key, value in args.items() if key != 'page'}
@@ -139,6 +167,12 @@ def create_app(test_config=None):
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['Referrer-Policy'] = 'same-origin'
         response.headers['Content-Security-Policy'] = "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://checkout.stripe.com"
+        if app.config.get('GA_MEASUREMENT_ID'):
+            # Google Analytics loads only after consent, but the policy must allow it in advance.
+            google = 'https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com'
+            policy = response.headers['Content-Security-Policy']
+            response.headers['Content-Security-Policy'] = policy.replace("img-src 'self' data:", "img-src 'self' data: " + google).replace(
+                "script-src 'self'", "script-src 'self' https://www.googletagmanager.com").replace("default-src 'self';", "default-src 'self'; connect-src 'self' " + google + ";")
         if getattr(g, 'csp_nonce', None):
             response.headers['Content-Security-Policy'] = response.headers['Content-Security-Policy'].replace("script-src 'self'", "script-src 'self' 'nonce-" + g.csp_nonce + "'")
         if request.path.startswith(('/admin', '/library', '/checkout', '/cart', '/media/private', '/login', '/register')):
@@ -149,6 +183,14 @@ def create_app(test_config=None):
         return response
     for code in [400, 403, 404, 413, 429, 500, 503]:
         def handler(error, code=code):
+            if code == 404 and request.method in {'GET', 'HEAD'} and len(request.path) > 1 and request.path.endswith('/'):
+                # /books/ and /books are the same page: send old or mistyped links to the one address search engines index.
+                try:
+                    app.url_map.bind_to_environ(request.environ).match(request.path.rstrip('/'), method='GET')
+                    query = request.query_string.decode()
+                    return redirect(request.path.rstrip('/') + ('?' + query if query else ''), 301)
+                except HTTPException:
+                    pass
             g.rendering_error = True
             db.session.rollback()
             return render_template('error.html', code=code), code

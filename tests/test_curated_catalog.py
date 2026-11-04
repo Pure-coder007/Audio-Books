@@ -92,4 +92,5 @@ def test_coming_soon_title_by_another_author_keeps_its_author(app, client):
 def test_footer_has_no_developer_credit(client):
     page = client.get('/').data
     assert b'TECHNEST' not in page and b'developer-credit' not in page
-    assert b'width="1535" height="1024"' in page
+    # The header and footer use a 400px WebP copy of the logo, sized to avoid layout shift.
+    assert page.count(b'aud-logo-400.webp') == 2 and b'width="400" height="267"' in page
