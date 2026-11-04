@@ -4,11 +4,17 @@ Each section is (heading, blocks); a block is ('p', text) or ('ul', [items]).
 The final contact section of each document is rendered from COMPANY.
 """
 
+# As registered at Companies House; UK law requires the number and office on the website.
+OFFICE = ('22 Laxton Close', 'Corby', 'NN17 2QL')
 COMPANY = dict(
     name='MyAudioShelf Ltd',
+    number='17533587',
+    incorporated='2026-10-21',
+    register='https://find-and-update.company-information.service.gov.uk/company/17533587',
     website='www.myaudioshelf.com',
     email='contact@myaudioshelf.com',
-    office='22 Laxton Close, Corby',
+    address=OFFICE,
+    office=', '.join(OFFICE),
     jurisdiction='England and Wales, United Kingdom',
 )
 EFFECTIVE = '27 October 2026'

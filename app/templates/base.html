@@ -47,6 +47,7 @@
  <div><span class="eyebrow">Find your story</span><a href="{{ url_for('main.catalog') }}">Browse audiobooks</a><a href="{{ url_for('main.featured') }}">Featured & coming soon</a><a href="{{ url_for('main.catalog', collection='children') }}">Children’s shelf</a><a href="{{ url_for('library.index') }}">My purchases</a></div>
  <div><span class="eyebrow">Make something heard</span><a href="/about">About MyAudioShelf</a><a href="/services">Our services</a><a href="/immersive-audio">Immersive audio</a><a href="/children">MyAudioShelf Kids</a><a href="/originals">Our Originals</a><a href="/innovation">Innovation</a><a href="/contact">Contact</a><a href="{{ url_for('main.production') }}">Authors & publishers</a><a href="{{ url_for('admin.login') }}">Staff sign-in</a><p>Made for stories that stay with you.</p></div>
  <div class="footer-bottom"><div class="footer-policy"><a href="/privacy">Privacy Policy</a><a href="/terms">Terms &amp; Conditions</a><a href="/cookies">Cookies</a><a href="/copyright">Copyright</a><a href="/accessibility">Accessibility</a></div><span>© 2026 MyAudioShelf Ltd. All Rights Reserved.</span><span>Listen a little. Discover a lot.</span></div>
+ <p class="footer-company">{{ company.name }} is registered in England and Wales, company number {{ company.number }}. Registered office: {{ company.office }}.</p>
 </footer>
 <div id="preview-player" class="preview-player" hidden aria-label="Audiobook trailer player">
  <div class="preview-info"><span class="eyebrow">A little taste of the story</span><strong id="preview-title"></strong></div>

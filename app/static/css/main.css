@@ -3081,3 +3081,4 @@ html[data-color-mode=light] .install-card,html[data-color-mode=light] .install-t
 @media(max-width:560px){.install-stack{left:12px;right:12px;width:auto;top:calc(var(--nav-height) + 10px)}.install-card,.install-toast{transform:translateY(-14px) scale(.98)}.install-stack .install-out{transform:translateY(-14px)}.install-body{padding:16px 14px 14px 20px}.install-note{font-size:10.5px}}
 @media(max-width:374px){.install-note{display:none}}
 @media(prefers-reduced-motion:reduce){.install-card,.install-toast{transform:none;transition:opacity .2s}.install-stack .install-out{transform:none}.install-icon,.install-card li,.install-shine{animation:none}.install-shine{display:none}.footer-app{transition:none}.footer-app:hover{transform:none}}
+.site-footer .footer-company{grid-column:1/-1;max-width:none;margin:0;font-size:10.5px;line-height:1.7;color:var(--muted)}

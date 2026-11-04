@@ -115,7 +115,8 @@ def create_app(test_config=None):
         from .models import Category
         from .genre_themes import genre_theme
         from .content.company import SOCIAL_LINKS
-        return {'genre_theme': genre_theme, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(lambda: db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()),
+        from .content.legal import COMPANY
+        return {'genre_theme': genre_theme, 'social_links': SOCIAL_LINKS, 'company': COMPANY, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(lambda: db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()),
             'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE']}
     @app.template_filter('reject_page')
     def reject_page(args):
