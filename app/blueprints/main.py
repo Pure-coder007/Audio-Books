@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, abort, Response, current_app
 from sqlalchemy import or_
@@ -203,6 +204,35 @@ def legal():
 def robots():
     return Response('User-agent: *\nDisallow: /admin\nDisallow: /library\nDisallow: /checkout\nDisallow: /cart\nSitemap: ' + current_app.config['BASE_URL'] + '/sitemap.xml\n', mimetype='text/plain')
 
+@bp.get('/manifest.webmanifest')
+def web_manifest():
+    # Lets visitors install the shop as an app on phones, tablets and computers.
+    icon = lambda name, size, purpose='any': {'src': url_for('static', filename='icons/' + name), 'sizes': size, 'type': 'image/png', 'purpose': purpose}
+    shot = lambda name, size, form, label: {'src': url_for('static', filename='images/app/' + name), 'sizes': size, 'type': 'image/webp', 'form_factor': form, 'label': label}
+    shortcut = lambda name, path: {'name': name, 'url': path, 'icons': [icon('shortcut-96.png', '96x96')]}
+    manifest = {'id': '/', 'name': 'MyAudioShelf', 'short_name': 'MyAudioShelf', 'lang': 'en-GB', 'dir': 'ltr',
+        'description': 'Immersive audiobooks, dramatised productions and children’s audio. Listen a little. Discover a lot.',
+        'start_url': '/', 'scope': '/', 'display': 'standalone', 'background_color': '#111813', 'theme_color': '#111813',
+        'categories': ['books', 'entertainment', 'education'], 'prefer_related_applications': False,
+        'icons': [icon('app-192.png', '192x192'), icon('app-512.png', '512x512'),
+            icon('app-maskable-192.png', '192x192', 'maskable'), icon('app-maskable-512.png', '512x512', 'maskable')],
+        'screenshots': [shot('home-wide.webp', '1440x900', 'wide', 'Stories worth listening to'),
+            shot('bookshelf-wide.webp', '1440x900', 'wide', 'The bookshelf'),
+            shot('home-narrow.webp', '780x1688', 'narrow', 'Stories worth listening to'),
+            shot('bookshelf-narrow.webp', '780x1688', 'narrow', 'The bookshelf'),
+            shot('featured-narrow.webp', '780x1688', 'narrow', 'Featured and coming soon')],
+        'shortcuts': [shortcut('Browse audiobooks', '/books'), shortcut('Featured & coming soon', '/featured'), shortcut('My purchases', '/library')]}
+    response = Response(json.dumps(manifest, ensure_ascii=False), mimetype='application/manifest+json')
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+@bp.get('/sw.js')
+def service_worker():
+    # Served from the root so it covers every page; no-cache lets updates arrive on the next visit.
+    response = send_file(Path(current_app.static_folder) / 'js' / 'sw.js', mimetype='text/javascript')
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
 @bp.get('/health')
 def health():
     db.session.execute(db.text('SELECT 1'))
@@ -252,7 +282,7 @@ def contact():
 @limiter.limit('30 per minute')
 def engagement():
     data=request.get_json(silent=True) or {}
-    if data.get('kind') not in {'audio_start','audio_complete'}:abort(400)
+    if data.get('kind') not in {'audio_start','audio_complete','app_install'}:abort(400)
     db.session.add(AnalyticsEvent(kind=data['kind']))
     db.session.commit()
     return {'recorded':True}

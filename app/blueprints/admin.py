@@ -96,6 +96,7 @@ def dashboard():
     counts = {'page_views': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind.like('page_view:%'))),
         'audio_completions': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind == 'audio_complete')),
         'contacts': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind == 'contact_submission')),
+        'app_installs': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind == 'app_install')),
         'books': db.session.scalar(db.select(db.func.count()).select_from(Audiobook)),
         'drafts': db.session.scalar(db.select(db.func.count()).select_from(Audiobook).where(Audiobook.state == 'draft')),
         'orders': db.session.scalar(db.select(db.func.count()).select_from(Order)),

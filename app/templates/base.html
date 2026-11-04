@@ -6,13 +6,15 @@
   <title>{% block title %}MyAudioShelf — Stories worth listening to{% endblock %}</title>
   <meta name="description" content="{% block description %}MyAudioShelf creates immersive audiobooks, dramatised productions and children’s audio through performance, sound design, music and responsible emerging technology.{% endblock %}">
   <link rel="canonical" href="{{ config.BASE_URL }}{{ request.path }}">
-  <meta name="theme-color" content="#C7F000"><meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#111813"><meta name="csrf-token" content="{{ csrf_token() }}">
   {% if demo_mode %}<meta name="robots" content="noindex, nofollow">{% endif %}
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any"><link rel="icon" href="{{ url_for('static', filename='images/brand/favicon-192.png') }}" type="image/png" sizes="192x192"><link rel="apple-touch-icon" href="{{ url_for('static', filename='images/brand/apple-touch-icon.png') }}">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any"><link rel="icon" href="{{ url_for('static', filename='images/brand/favicon-192.png') }}" type="image/png" sizes="192x192"><link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}" sizes="180x180">
+  <link rel="manifest" href="/manifest.webmanifest"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="MyAudioShelf"><meta name="apple-mobile-web-app-status-bar-style" content="black">
   <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   {% block head %}{% endblock %}
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/install.js') }}" defer></script>
 </head>
 {% set active_genre = selected_genre if selected_genre else (book.categories[0] if book and book.categories else none) %}
 <body class="theme-{{ genre_theme(active_genre.slug if active_genre else request.args.get('collection')).key }}{% if request.endpoint == 'main.home' %} homepage{% endif %}">
@@ -39,7 +41,7 @@
 <div id="cart-feedback" class="cart-feedback" role="status" aria-live="polite" hidden></div>
 <main id="main">{% block content %}{% endblock %}</main>
 <footer class="site-footer">
- <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf" width="1535" height="1024" loading="lazy"></a><p>Immersive stories.<br>Extraordinary listening.</p><div class="footer-social"><span class="eyebrow">Follow the Shelf</span><ul class="social-links">{% for key, label, url in social_links %}<li><a class="social-link social-{{ key }}" href="{{ url }}" target="_blank" rel="noopener noreferrer me" aria-label="MyAudioShelf on {{ label }} (opens in a new tab)" title="{{ label }}">{{ social_icon(key) }}</a></li>{% endfor %}</ul></div></div>
+ <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo.png') }}" alt="MyAudioShelf" width="1535" height="1024" loading="lazy"></a><p>Immersive stories.<br>Extraordinary listening.</p><div class="footer-social"><span class="eyebrow">Follow the Shelf</span><ul class="social-links">{% for key, label, url in social_links %}<li><a class="social-link social-{{ key }}" href="{{ url }}" target="_blank" rel="noopener noreferrer me" aria-label="MyAudioShelf on {{ label }} (opens in a new tab)" title="{{ label }}">{{ social_icon(key) }}</a></li>{% endfor %}</ul></div><button type="button" class="footer-app" data-install-open hidden><img src="{{ url_for('static', filename='icons/app-192.png') }}" alt="" width="38" height="38" loading="lazy"><span><strong>Get the app</strong><small>Free · no app store</small></span></button></div>
  <div><span class="eyebrow">Find your story</span><a href="{{ url_for('main.catalog') }}">Browse audiobooks</a><a href="{{ url_for('main.featured') }}">Featured & coming soon</a><a href="{{ url_for('main.catalog', collection='children') }}">Children’s shelf</a><a href="{{ url_for('library.index') }}">My purchases</a></div>
  <div><span class="eyebrow">Make something heard</span><a href="/about">About MyAudioShelf</a><a href="/services">Our services</a><a href="/immersive-audio">Immersive audio</a><a href="/children">MyAudioShelf Kids</a><a href="/originals">Our Originals</a><a href="/innovation">Innovation</a><a href="/contact">Contact</a><a href="{{ url_for('main.production') }}">Authors & publishers</a><a href="{{ url_for('admin.login') }}">Staff sign-in</a><p>Made for stories that stay with you.</p></div>
  <div class="footer-bottom"><div class="footer-policy"><a href="/privacy">Privacy Policy</a><a href="/terms">Terms &amp; Conditions</a><a href="/cookies">Cookies</a><a href="/copyright">Copyright</a><a href="/accessibility">Accessibility</a></div><span>© 2026 MyAudioShelf Ltd. All Rights Reserved.</span><span>Listen a little. Discover a lot.</span></div>

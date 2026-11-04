@@ -3037,3 +3037,47 @@ html[data-color-mode=dark] .what-we-do{--step-review:#4fd1ff;--step-production:#
 .storydna-home .context-equation{grid-column:1/-1;margin:0}
 @media(max-width:900px){.storydna-home{grid-template-columns:1fr;padding:30px 24px;margin-top:36px}}
 @media(max-width:560px){.storydna-home{padding:24px 18px;border-left-width:4px}.storydna-home h2{font-size:30px}.storydna-home .lead{font-size:15px}.storydna-engines li{padding:16px}}
+
+/* Install prompt: a notification-style card offering the site as an app. */
+.install-stack{position:fixed;top:calc(var(--nav-height) + 16px);right:20px;z-index:70;display:grid;gap:12px;width:min(376px,calc(100vw - 24px));pointer-events:none}
+.install-card,.install-toast{position:relative;overflow:hidden;pointer-events:auto;border-radius:20px;color:var(--ink);background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent);box-shadow:0 28px 64px -22px rgba(6,12,8,.7),0 2px 8px -2px rgba(6,12,8,.25),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;transform:translateX(64px) scale(.98);transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1)}
+.install-stack .install-in{opacity:1;transform:none}.install-stack .install-out{opacity:0;transform:translateX(64px);transition-duration:.18s}
+html[data-color-mode=light] .install-card,html[data-color-mode=light] .install-toast{box-shadow:0 26px 56px -24px rgba(24,60,43,.38),0 2px 8px -3px rgba(24,60,43,.14),inset 0 1px 0 #fff}
+.install-accent{position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,var(--lime),#86c400)}
+.install-glow{position:absolute;right:-80px;top:-100px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(199,240,0,.2),transparent 68%);pointer-events:none}
+.install-body{position:relative;padding:18px 16px 16px 22px}
+.install-head{display:flex;align-items:flex-start;gap:14px}
+.install-icon{flex-shrink:0;width:52px;height:52px;border-radius:14px;overflow:hidden;box-shadow:0 10px 20px -10px rgba(0,0,0,.7),0 0 0 1px color-mix(in srgb,var(--ink) 12%,transparent);animation:install-pop .62s cubic-bezier(.34,1.56,.64,1) .12s both}
+.install-icon img{width:100%;height:100%;object-fit:cover}
+.install-copy{flex:1;min-width:0;padding-top:2px}
+.install-card .install-title,.install-toast .install-title{margin:0;font-size:16px;font-weight:600;line-height:1.3;letter-spacing:-.015em;color:var(--ink)}
+.install-card .install-text,.install-toast .install-text{margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+.install-close{display:grid;place-items:center;flex-shrink:0;width:30px;height:30px;margin:-5px -4px 0 0;padding:0;border:0;border-radius:9px;background:none;color:var(--muted);transition:background .2s,color .2s}.install-close:hover{background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--ink)}
+.install-stack svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.install-close svg{width:15px;height:15px;stroke-width:2.2}
+.install-perks{display:flex;flex-wrap:wrap;gap:7px 16px;margin:15px 0 0;padding:0;list-style:none;font-size:12px;color:var(--muted)}
+.install-perks li{display:flex;align-items:center;gap:6px;animation:install-rise .35s cubic-bezier(.22,1,.36,1) both}.install-perks svg{width:14px;height:14px;color:var(--forest);stroke-width:2.6}
+.install-steps{display:grid;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.install-steps li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);background:color-mix(in srgb,var(--ink) 4%,transparent);font-size:13px;line-height:1.4;color:var(--muted);animation:install-rise .35s cubic-bezier(.22,1,.36,1) both}
+.install-steps b{color:var(--ink);font-weight:600}.install-step-text{flex:1}.install-steps svg{width:19px;height:19px;flex-shrink:0;color:var(--forest)}
+.install-step-number{display:grid;place-items:center;flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--lime);color:var(--on-accent);font-size:11.5px;font-weight:700;box-shadow:0 4px 10px -4px rgba(199,240,0,.8)}
+.install-card li:nth-child(1){animation-delay:.2s}.install-card li:nth-child(2){animation-delay:.27s}.install-card li:nth-child(3){animation-delay:.34s}
+.install-actions{display:flex;align-items:center;gap:6px;margin-top:17px}
+.install-primary{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border:0;border-radius:12px;background:var(--lime);color:var(--on-accent);font-size:13.5px;font-weight:700;letter-spacing:-.005em;box-shadow:0 12px 24px -12px rgba(199,240,0,.9),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .2s,box-shadow .2s,filter .2s}
+.install-primary:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 16px 28px -12px rgba(199,240,0,.95),inset 0 1px 0 rgba(255,255,255,.45)}.install-primary:disabled{opacity:.75;transform:none}
+.install-primary svg{position:relative;width:16px;height:16px;stroke-width:2.4;transition:transform .2s}.install-primary:hover svg{transform:translateY(2px)}.install-label{position:relative}
+.install-shine{position:absolute;top:0;bottom:0;left:-30%;width:44px;background:rgba(255,255,255,.6);filter:blur(4px);transform:skewX(-14deg);animation:install-shine 1s cubic-bezier(.22,1,.36,1) .75s both}
+.install-later{height:40px;padding:0 13px;border:0;border-radius:12px;background:none;color:var(--muted);font-size:13px;font-weight:500;transition:background .2s,color .2s}.install-later:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
+.install-note{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.install-toast .install-body{display:flex;align-items:flex-start;gap:12px;padding:15px 18px 16px 20px}
+.install-toast-icon{display:grid;place-items:center;flex-shrink:0;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,var(--lime) 18%,transparent);color:var(--forest)}.install-toast-icon svg{width:18px;height:18px}
+.install-timer{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--lime);opacity:.5;transform-origin:left;animation:install-timer 5.2s linear forwards}
+@keyframes install-pop{from{opacity:0;transform:scale(.6) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes install-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes install-shine{from{left:-30%}to{left:130%}}
+@keyframes install-timer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.footer-app{display:inline-flex;align-items:center;gap:12px;margin-top:22px;padding:8px 18px 8px 8px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--surface) 75%,transparent);color:var(--ink);text-align:left;transition:transform .25s,box-shadow .25s,border-color .25s}
+.footer-app:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--lime) 60%,transparent);box-shadow:0 14px 26px -12px rgba(199,240,0,.55)}
+.footer-app img{width:38px;height:38px;border-radius:10px}.footer-app strong{display:block;font-size:13px;font-weight:600;line-height:1.3}.footer-app small{display:block;font-size:10.5px;color:var(--muted);line-height:1.4}
+@media(max-width:560px){.install-stack{left:12px;right:12px;width:auto;top:calc(var(--nav-height) + 10px)}.install-card,.install-toast{transform:translateY(-14px) scale(.98)}.install-stack .install-out{transform:translateY(-14px)}.install-body{padding:16px 14px 14px 20px}.install-note{font-size:10.5px}}
+@media(max-width:374px){.install-note{display:none}}
+@media(prefers-reduced-motion:reduce){.install-card,.install-toast{transform:none;transition:opacity .2s}.install-stack .install-out{transform:none}.install-icon,.install-card li,.install-shine{animation:none}.install-shine{display:none}.footer-app{transition:none}.footer-app:hover{transform:none}}

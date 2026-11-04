@@ -164,3 +164,11 @@ Staff sign in at `/admin/login`, using the credentials in the database selected 
 ### Resend purchase emails
 
 Verified payments queue branded receipts with secure audiobook download links. Configure `RESEND_API_KEY` and `RESEND_FROM_EMAIL`, then run `python -m flask --app wsgi check-email-config`. Set up a minute-by-minute `deliver-emails` retry job sharing the web database. See [Resend and Render setup](docs/RESEND_RENDER_SETUP.md) for the full environment list, sender verification, Stripe events and delivery checks.
+
+### Installable app
+
+MyAudioShelf installs as an app on phones, tablets and computers from `/manifest.webmanifest`; there is no app store. Chrome, Edge and Samsung Internet show their own install window, and Chrome's richer install sheet uses the screenshots in `app/static/images/app/`. Twelve seconds into a visit, a card offers the app: it opens the browser's install window where one exists, and gives two short steps on iPhone and iPad, Safari on Mac and Firefox on Android. "Not now" hides the card for a week. Installed visitors and staff pages never see it, and a "Get the app" button in the footer reopens it. Installs appear as "App installs" on the dashboard; iPhone installs cannot be detected, so they are not counted.
+
+The service worker (`/sw.js`, from `app/static/js/sw.js`) keeps covers and site images on the device and shows a branded page instead of an error when a visitor is offline or Render is redeploying. It never stores pages, which carry per-visitor security tokens, and never touches purchased audio, downloads, checkout or staff pages. After changing cached images in place, raise `ARTWORK_CACHE`'s version number so devices fetch them again.
+
+To show someone the card without waiting, add `?install-preview=app`, `ios`, `mac` or `firefox` to any page address. Previews change nothing on the visitor's device.
