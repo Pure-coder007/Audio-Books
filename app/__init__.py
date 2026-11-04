@@ -1,11 +1,25 @@
 import os
 import secrets
+from collections.abc import Sequence
 from pathlib import Path
 from datetime import timedelta
 from flask import Flask, render_template, session, request, g
 from flask_wtf.csrf import CSRFError, generate_csrf
 from .config import Config
 from .extensions import db, migrate, csrf, limiter
+
+class Deferred(Sequence):
+    """A list that runs its query only when a template first reads it."""
+    def __init__(self, load):
+        self._load, self._items = load, None
+    def _all(self):
+        if self._items is None:
+            self._items = self._load()
+        return self._items
+    def __getitem__(self, index):
+        return self._all()[index]
+    def __len__(self):
+        return len(self._all())
 
 def create_app(test_config=None):
     from .services.logging_service import configure_token_redaction
@@ -101,7 +115,7 @@ def create_app(test_config=None):
         from .models import Category
         from .genre_themes import genre_theme
         from .content.company import SOCIAL_LINKS
-        return {'genre_theme': genre_theme, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all(),
+        return {'genre_theme': genre_theme, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(lambda: db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()),
             'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE']}
     @app.template_filter('reject_page')
     def reject_page(args):
@@ -116,14 +130,8 @@ def create_app(test_config=None):
     @app.after_request
     def headers(response):
         if request.method == 'GET' and response.status_code == 200 and response.mimetype == 'text/html' and request.blueprint == 'main':
-            from .models import AnalyticsEvent
-            from sqlalchemy.exc import SQLAlchemyError
-            try:
-                db.session.add(AnalyticsEvent(kind=('page_view:' + request.path)[:100]))
-                db.session.commit()
-            except SQLAlchemyError:
-                db.session.rollback()
-                app.logger.warning('Could not record aggregate page engagement.')
+            from .services.analytics_service import record_after_response
+            record_after_response(response, kind=('page_view:' + request.path)[:100])
         # Every rendered page contains session-bound CSRF tokens.
         if response.mimetype == 'text/html' or request.path == '/session/csrf':
             response.headers['Cache-Control'] = 'private, no-store'

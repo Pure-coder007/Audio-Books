@@ -52,7 +52,8 @@ def test_newsletter_name_and_aggregate_engagement(client,app):
     client.post('/newsletter',data={'first_name':'Ada','email':'a@example.com','consent':'on'})
     assert client.post('/engagement',json={'kind':'audio_complete'}).status_code==200
     assert client.post('/engagement',json={'kind':'invented'}).status_code==400
-    client.get('/innovation')
+    # Page views are written once the server closes the response, as gunicorn does after sending it.
+    client.get('/innovation').close()
     with app.app_context():
         assert db.session.scalar(db.select(NewsletterSubscriber)).first_name=='Ada'
         assert db.session.scalar(db.select(AnalyticsEvent).where(AnalyticsEvent.kind=='page_view:/innovation'))

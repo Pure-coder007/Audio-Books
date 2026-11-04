@@ -1,20 +1,26 @@
 import json
 from pathlib import Path
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, abort, Response, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, abort, Response, current_app, after_this_request
 from sqlalchemy import or_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from ..extensions import db, limiter
 from ..models import Audiobook, Author, Category, MediaAsset, ProductionEnquiry, NewsletterSubscriber, AnalyticsEvent
 from ..services.access_service import normalize_email
 from ..services.media_service import media_path
+from ..services.analytics_service import record_after_response
 
 bp = Blueprint('main', __name__)
 
-def visible_books():
+def published_books():
     query = db.select(Audiobook).where(Audiobook.state == 'published')
     if not (current_app.config['DEMO_MODE'] or current_app.config['SAMPLE_CATALOG']):
         query = query.where(Audiobook.is_demo.is_(False))
     return query
+
+def visible_books():
+    # Load a shelf's authors, genres and media in one query apiece rather than one query per book.
+    return published_books().options(selectinload(Audiobook.author), selectinload(Audiobook.categories), selectinload(Audiobook.media))
 
 @bp.get('/')
 def home():
@@ -29,7 +35,8 @@ def home():
     groups = list(by_genre.values())
     random.shuffle(groups)
     shelf_books = [b for b in chain.from_iterable(zip_longest(*groups)) if b][:12]
-    return render_template('home.html', shelf_books=shelf_books)
+    from ..content.legal import COMPANY
+    return render_template('home.html', shelf_books=shelf_books, company=COMPANY)
 
 @bp.get('/books')
 @bp.get('/genres/<genre_slug>', endpoint='category')
@@ -66,7 +73,7 @@ def catalog(genre_slug=None):
     sorting = {'newest': Audiobook.published_at.desc(), 'featured': Audiobook.featured.desc(),
         'title': Audiobook.title.asc(), 'price': Audiobook.price_minor.asc()}
     page = db.paginate(query.order_by(sorting.get(sort, Audiobook.published_at.desc()), Audiobook.id), per_page=10, error_out=False)
-    facets = db.session.scalars(visible_books()).all()
+    facets = db.session.execute(published_books().with_only_columns(Audiobook.language, Audiobook.age_range)).all()
     return render_template('catalog.html', page=page, q=q, selected_genre=selected_genre,
         languages=sorted({b.language for b in facets}), ages=sorted({b.age_range for b in facets if b.age_range}))
 
@@ -82,8 +89,7 @@ def book(slug):
     book = db.session.scalar(visible_books().where(Audiobook.slug == slug))
     if not book:
         abort(404)
-    db.session.add(AnalyticsEvent(book_id=book.id, kind='book_view'))
-    db.session.commit()
+    after_this_request(lambda response: record_after_response(response, book_id=book.id, kind='book_view'))
     related = db.session.scalars(visible_books().where(Audiobook.id != book.id,
         or_(Audiobook.author_id == book.author_id, Audiobook.categories.any(Category.id.in_([c.id for c in book.categories])))).limit(4)).all()
     schema = {'@context': 'https://schema.org', '@type': 'Book', 'name': book.title,
@@ -99,7 +105,7 @@ def book(slug):
 @bp.post('/books/<string:book_id>/trailer-play')
 @limiter.limit('30 per minute')
 def trailer_event(book_id):
-    book = db.session.scalar(visible_books().where(Audiobook.id == book_id))
+    book = db.session.scalar(published_books().where(Audiobook.id == book_id))
     if not book:
         abort(404)
     db.session.add(AnalyticsEvent(book_id=book.id, kind='trailer_play'))
