@@ -210,6 +210,18 @@ def legal():
 def robots():
     return Response('User-agent: *\nDisallow: /admin\nDisallow: /library\nDisallow: /checkout\nDisallow: /cart\nSitemap: ' + current_app.config['BASE_URL'] + '/sitemap.xml\n', mimetype='text/plain')
 
+@bp.get('/merchant-feed.xml')
+def merchant_feed():
+    # Google Merchant Center fetches this daily to list audiobooks in Google Shopping.
+    # Only titles checkout will sell: priced in pounds, with a cover and chapter or full-book audio.
+    books = db.session.scalars(visible_books().options(selectinload(Audiobook.chapters))
+        .where(Audiobook.saleable.is_(True), Audiobook.price_minor > 0, Audiobook.currency == 'gbp', Audiobook.is_demo.is_(False))
+        .order_by(Audiobook.title)).all()
+    books = [b for b in books if b.asset('cover') and (b.chapters or b.asset('full'))]
+    response = Response(render_template('merchant_feed.xml', books=books), mimetype='application/xml')
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
+
 @bp.get('/manifest.webmanifest')
 def web_manifest():
     # Lets visitors install the shop as an app on phones, tablets and computers.
