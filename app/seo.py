@@ -17,6 +17,10 @@ def summary(text, limit=158):
     text = ' '.join((text or '').split())
     if len(text) <= limit:
         return text
+    # End on a whole sentence when one fills most of the space; otherwise cut at a word.
+    sentence = max(text.rfind(mark, 0, limit) for mark in ('. ', '! ', '? '))
+    if sentence >= limit * 0.6:
+        return text[:sentence + 1]
     cut = text[:limit - 1].rsplit(' ', 1)[0].rstrip(',;:–—-')
     return cut + '…'
 

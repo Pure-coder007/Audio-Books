@@ -269,3 +269,10 @@ def test_dashboard_lists_what_keeps_pages_out_of_search(app, admin_client):
     add_book(app, 'unwritten', synopsis=PLACEHOLDER_SYNOPSIS, price_minor=0, saleable=False, featured=True)
     html = admin_client.get('/admin/').get_data(as_text=True)
     assert 'Search readiness' in html and 'Unwritten' in html and 'Author pages without a biography' in html
+
+
+def test_descriptions_end_on_a_whole_sentence_when_one_fits():
+    from app.seo import summary
+    first = 'Authors Gamble treats the writing life as a series of calculated bets, and shows authors how to place each one with confidence and care.'
+    assert summary(first + ' Across eight chapters it tackles writer’s block and much more besides.') == first
+    assert summary('Short. ' + 'word ' * 60).endswith('…')
