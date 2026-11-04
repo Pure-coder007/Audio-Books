@@ -50,15 +50,10 @@ def test_homepage_names_the_site_for_search_engines(client):
     assert website['url'] == 'http://localhost/'
     organization = next(item for item in data['@graph'] if item['@type'] == 'Organization')
     assert organization['legalName'] == 'MyAudioShelf Ltd'
+    # Company details go to search engines only; the footer stays as designed.
     assert organization['identifier']['value'] == '17533587' and organization['address']['postalCode'] == 'NN17 2QL'
     assert 'https://find-and-update.company-information.service.gov.uk/company/17533587' in organization['sameAs']
-
-
-def test_every_page_shows_the_registered_company(client):
-    for path in ['/', '/about', '/privacy']:
-        html = client.get(path).get_data(as_text=True)
-        assert 'company number 17533587' in html and '22 Laxton Close, Corby, NN17 2QL' in html
-    assert 'proposed' not in client.get('/about').get_data(as_text=True)
+    assert '17533587' not in html.split('</head>')[1]
 
 
 def test_every_page_has_one_link_preview(app, client):

@@ -35,7 +35,8 @@ def home():
     groups = list(by_genre.values())
     random.shuffle(groups)
     shelf_books = [b for b in chain.from_iterable(zip_longest(*groups)) if b][:12]
-    return render_template('home.html', shelf_books=shelf_books)
+    from ..content.legal import COMPANY
+    return render_template('home.html', shelf_books=shelf_books, company=COMPANY)
 
 @bp.get('/books')
 @bp.get('/genres/<genre_slug>', endpoint='category')

@@ -8,6 +8,6 @@
 <nav class="legal-toc" aria-label="On this page"><span class="eyebrow">On this page</span><ol>{% for heading, blocks in doc.document %}<li><a href="#section-{{ loop.index }}"><span>{{ loop.index }}</span>{{ heading }}</a></li>{% endfor %}</ol></nav>
 <article class="legal-document">{% for heading, blocks in doc.document %}<section id="section-{{ loop.index }}" class="legal-section"><h2><span class="legal-number">{{ loop.index }}.</span> {{ heading }}</h2>
 {% for kind, body in blocks %}{% if kind == 'ul' %}<ul>{% for item in body %}<li>{{ item|safe }}</li>{% endfor %}</ul>{% else %}<p>{{ body|safe }}</p>{% endif %}{% endfor %}
-{% if loop.last %}<address class="legal-contact"><strong>{{ company.name }}</strong><span>Website: <a href="/">{{ company.website }}</a></span><span>Email: <a href="mailto:{{ company.email }}">{{ company.email }}</a></span><span>Registered office: {{ company.office }}</span><span>Registered in England and Wales, company number {{ company.number }}</span></address>{% endif %}</section>{% endfor %}
+{% if loop.last %}<address class="legal-contact"><strong>{{ company.name }}</strong><span>Website: <a href="/">{{ company.website }}</a></span><span>Email: <a href="mailto:{{ company.email }}">{{ company.email }}</a></span><span>Registered office: {{ company.office }}</span></address>{% endif %}</section>{% endfor %}
 <p class="legal-updated">Last updated {{ effective }} · <a href="#main">Back to top ↑</a></p></article>
 </div></div>{% endblock %}
