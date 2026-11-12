@@ -1,0 +1,395 @@
+1
+00:00:01,780 --> 00:00:09,044
+Welcome to MyAudioShelf. This video shows you, step by step, how to run your audiobook store.
+
+2
+00:00:09,200 --> 00:00:15,237
+You don’t need any technical knowledge. Just follow along, and pause the video whenever you like.
+
+3
+00:00:15,904 --> 00:00:21,751
+Here is everything we’ll cover, from signing in and adding your first book, to what your listeners see.
+
+4
+00:00:24,185 --> 00:00:31,934
+To manage your store, add slash admin to the end of your website address. This opens the Shelf studio sign in page.
+
+5
+00:00:32,088 --> 00:00:35,145
+Type the email address of your staff account.
+
+6
+00:00:35,690 --> 00:00:40,580
+Then type your password. For your security, it stays hidden as you type.
+
+7
+00:00:40,735 --> 00:00:43,105
+Now click Open Shelf studio.
+
+8
+00:00:46,128 --> 00:00:54,505
+The first five times you sign in, a guided tour opens by itself. It points to each part of the screen and explains what it does.
+
+9
+00:00:54,665 --> 00:00:56,885
+Click Show me around to begin.
+
+10
+00:00:57,042 --> 00:01:04,271
+The highlighted area is the part being explained. Click Next to move on, or Back to see the last step again.
+
+11
+00:01:04,782 --> 00:01:13,638
+You can stop at any time with Skip tour, or the cross in the corner. On the first and last step, you can also choose Don’t show this guide again.
+
+12
+00:01:13,821 --> 00:01:21,429
+Let’s skip it for now. A small message reminds you that the tour is always available from the Guided tour button in the left menu.
+
+13
+00:01:21,588 --> 00:01:27,700
+This is your dashboard. On the left is the main menu, which takes you to every part of the studio.
+
+14
+00:01:27,855 --> 00:01:42,742
+Overview is this page. Audiobooks is your catalogue. Genres organise your books. Orders shows purchases, Production enquiries holds messages from authors, Staff is your team, and Audit history is a record of every change.
+
+15
+00:01:42,896 --> 00:01:46,314
+The boxes in the middle show your store at a glance.
+
+16
+00:01:46,493 --> 00:01:54,181
+Paid revenue is money from completed orders. Books counts every title, and Drafts counts the books you are still preparing.
+
+17
+00:01:54,367 --> 00:02:01,723
+Orders counts purchases, Enquiries counts new messages, and Trailers shows how many times previews were played.
+
+18
+00:02:01,876 --> 00:02:07,595
+Subscribers counts newsletter sign ups, and Page views shows visits to your website.
+
+19
+00:02:07,792 --> 00:02:12,555
+Further down are your most recent orders, and your most purchased titles.
+
+20
+00:02:12,714 --> 00:02:19,465
+At the top right, View storefront opens your public website, so you can check how everything looks.
+
+21
+00:02:19,626 --> 00:02:23,816
+Now, let’s add a new audiobook. Click Add an audiobook.
+
+22
+00:02:25,487 --> 00:02:34,261
+The form has four sections. Book details. Cover and audio. Price, featuring and genres. And Publication.
+
+23
+00:02:34,417 --> 00:02:36,954
+First, type the book’s title.
+
+24
+00:02:37,109 --> 00:02:42,548
+Then the author’s name. If this author is new, they are added for you automatically.
+
+25
+00:02:42,702 --> 00:02:46,339
+The narrator is optional. It is shown on the book’s page.
+
+26
+00:02:46,494 --> 00:02:51,628
+Language is already set to English. Change it if your book is in another language.
+
+27
+00:02:51,781 --> 00:02:58,281
+Next, write a description. This is what listeners read before they buy, so make it inviting.
+
+28
+00:02:58,437 --> 00:03:07,542
+Production style describes the recording. Narrated is a single voice. Immersive adds music and sound. Full cast uses several actors.
+
+29
+00:03:07,698 --> 00:03:09,754
+Now for the cover and audio.
+
+30
+00:03:09,915 --> 00:03:18,033
+Under Cover artwork, click Choose file and pick your cover image. JPG, PNG or WebP pictures work best.
+
+31
+00:03:18,204 --> 00:03:26,417
+Under Audio preview, choose a short sample of up to sixty seconds. Anyone can play this on your website, for free.
+
+32
+00:03:26,572 --> 00:03:34,921
+For the full recording you have two choices. Upload the whole audiobook as one file under Full audiobook, or add it chapter by chapter.
+
+33
+00:03:35,076 --> 00:03:39,098
+We’ll add chapters. Type the first chapter’s title here.
+
+34
+00:03:39,256 --> 00:03:42,031
+Then choose that chapter’s audio file.
+
+35
+00:03:42,186 --> 00:03:47,694
+Now the price. Type it in pounds, for example nine pounds ninety nine.
+
+36
+00:03:47,849 --> 00:03:51,854
+Tick at least one genre, so listeners can find the book.
+
+37
+00:03:52,008 --> 00:04:01,304
+Under Publication status, Draft keeps the book hidden while you work on it. Published puts it on your website. Archived takes it off the website.
+
+38
+00:04:01,459 --> 00:04:09,110
+Show on homepage lists the book on your home page. Main homepage book makes it the large book at the very top of the home page.
+
+39
+00:04:09,273 --> 00:04:14,033
+We’ll keep it as a Draft for now. Scroll down and click Save audiobook.
+
+40
+00:04:16,384 --> 00:04:23,115
+The green message at the top confirms it is saved. Each uploaded file now says Uploaded, with its size.
+
+41
+00:04:23,271 --> 00:04:29,861
+Let’s add the second chapter the same way. Type its title, choose its audio file, and save.
+
+42
+00:04:30,973 --> 00:04:42,348
+Your chapters are listed here, in the order listeners will hear them. Move up and Move down change the order, and Remove deletes a chapter. You can only remove chapters while the book is a Draft.
+
+43
+00:04:42,501 --> 00:04:50,998
+Before going live, click Preview at the top. It shows exactly how the book’s page will look to listeners. Buying is switched off in preview.
+
+44
+00:04:51,157 --> 00:04:54,230
+Click Back to admin to return to the studio.
+
+45
+00:04:54,385 --> 00:05:00,546
+Open the book again with Edit. When everything is ready, change Publication status to Published.
+
+46
+00:05:00,702 --> 00:05:02,759
+Then click Save audiobook.
+
+47
+00:05:03,357 --> 00:05:07,394
+That’s it. The book is now live on your website and ready to buy.
+
+48
+00:05:07,574 --> 00:05:13,322
+Sometimes you want to announce a book before it is ready to sell. That is what Featured is for.
+
+49
+00:05:13,476 --> 00:05:18,262
+Add a new audiobook, and fill in the title, the author and a description.
+
+50
+00:05:23,490 --> 00:05:26,810
+Upload a cover. You don’t need any audio yet.
+
+51
+00:05:26,966 --> 00:05:28,678
+Leave the price empty.
+
+52
+00:05:28,864 --> 00:05:34,625
+Tick Featured. Because there is no price, the book’s price tag will say Coming soon.
+
+53
+00:05:34,782 --> 00:05:39,537
+Choose a genre, set Publication status to Published, and save.
+
+54
+00:05:40,781 --> 00:05:45,491
+The message confirms the book is on the Featured page, as Coming soon.
+
+55
+00:05:45,647 --> 00:05:54,463
+Here is the Featured page on your website. Every featured book without a price is listed here with a Coming soon tag, and nobody can buy it yet.
+
+56
+00:05:54,617 --> 00:05:59,152
+When you are ready to sell, go back to the book, and type a price.
+
+57
+00:06:02,808 --> 00:06:13,386
+If anything is missing, the studio tells you exactly what. Here, a book on sale needs a preview and the full audio. Click any message to jump straight to that field.
+
+58
+00:06:13,549 --> 00:06:17,327
+Choose the preview and the full audiobook, and save again.
+
+59
+00:06:20,009 --> 00:06:27,079
+Now the book is on sale. It leaves the Featured page by itself, and appears on the bookshelf with its price.
+
+60
+00:06:27,910 --> 00:06:31,533
+Click Audiobooks in the menu to see all of your titles.
+
+61
+00:06:31,688 --> 00:06:34,593
+Search for any book by its title here.
+
+62
+00:06:35,337 --> 00:06:42,950
+Reset clears the search. These tabs show all titles, only Featured books, or only books that are Coming soon.
+
+63
+00:06:43,106 --> 00:06:51,607
+Each row shows the book’s status, its price and its collections. Edit opens the book’s form, and Preview shows its public page.
+
+64
+00:06:53,306 --> 00:07:00,261
+Genres help listeners find books on your website. To add one, type its name, and click Add genre.
+
+65
+00:07:00,415 --> 00:07:05,639
+The new genre is ready straight away, in the book form and in your website’s filters.
+
+66
+00:07:07,506 --> 00:07:11,268
+When someone buys a book, the order appears under Orders.
+
+67
+00:07:11,422 --> 00:07:17,803
+Click an order to open it. You can see the total, the payment details, and the books that were bought.
+
+68
+00:07:17,958 --> 00:07:25,996
+Under Listening access, you control who can play the book. Every change needs a short reason, which is saved in the audit history.
+
+69
+00:07:26,152 --> 00:07:33,421
+Revoke access stops the listener from playing the book, for example after a refund. Restore access gives it back.
+
+70
+00:07:33,577 --> 00:07:40,673
+If a listener loses their email, type a reason and click Email new listening link. A fresh link is sent to them.
+
+71
+00:07:42,338 --> 00:07:47,828
+Authors and publishers who contact you through your website appear under Production enquiries.
+
+72
+00:07:47,989 --> 00:07:56,440
+Each enquiry shows the person’s details, their project and their message. If they attached a manuscript, you can download it here.
+
+73
+00:07:56,595 --> 00:08:02,074
+As you work with them, change the status. For example, from New to Reviewing.
+
+74
+00:08:02,228 --> 00:08:06,291
+Add private notes for your team, and click Save enquiry.
+
+75
+00:08:09,196 --> 00:08:12,904
+Under Staff, you can give your team their own sign in.
+
+76
+00:08:13,058 --> 00:08:22,518
+Owners can do everything. Editors manage books, genres and enquiries. Support staff manage orders, listening access and enquiries.
+
+77
+00:08:22,674 --> 00:08:28,612
+To add someone, type their email address and a starting password of at least twelve characters.
+
+78
+00:08:28,766 --> 00:08:31,871
+Choose their role, and click Add staff member.
+
+79
+00:08:32,025 --> 00:08:37,669
+If someone leaves, click Disable. They are signed out everywhere, straight away.
+
+80
+00:08:39,372 --> 00:08:49,202
+Audit history keeps a record of every important action, with the time, who did it, and what changed. It is useful if you ever need to check what happened.
+
+81
+00:08:49,366 --> 00:08:54,310
+Now let’s see your website the way listeners do. Click View storefront.
+
+82
+00:08:54,479 --> 00:09:00,621
+The home page opens with your main book. Visitors can play its preview, or buy it straight away.
+
+83
+00:09:00,777 --> 00:09:04,344
+The menu at the top leads to every part of your website.
+
+84
+00:09:04,500 --> 00:09:09,400
+Hover over Services to see what you offer. These details are for reading only.
+
+85
+00:09:09,556 --> 00:09:15,698
+Hover over Discover for your company pages, such as About, Our services and Innovation.
+
+86
+00:09:16,730 --> 00:09:19,929
+The bookshelf lists every book that is on sale.
+
+87
+00:09:20,084 --> 00:09:26,505
+Listeners can search, and filter by genre, language, length, price and more.
+
+88
+00:09:26,669 --> 00:09:30,072
+The Featured page shows the books that are coming soon.
+
+89
+00:09:30,246 --> 00:09:35,140
+Clicking a book opens its page, with the cover, the price and the description.
+
+90
+00:09:35,295 --> 00:09:40,753
+Listen to the preview plays the free sample, in a small player at the bottom of the screen.
+
+91
+00:09:41,770 --> 00:09:44,720
+Add to cart puts the book in the listener’s cart.
+
+92
+00:09:45,233 --> 00:09:53,505
+The cart shows their books and the total. They type their email address and click Continue to checkout. Payment is handled securely by Stripe.
+
+93
+00:09:53,666 --> 00:10:01,703
+After paying, they receive an email with a private link to listen to, or download, their audiobook. No account is needed.
+
+94
+00:10:01,861 --> 00:10:08,421
+My purchases is where returning listeners ask for a new listening link, using the same email address.
+
+95
+00:10:08,576 --> 00:10:15,207
+These buttons switch the book opening sounds on or off, and switch your website between dark and light colours.
+
+96
+00:10:16,302 --> 00:10:21,122
+At the bottom of every page are links to your pages, and to your social media.
+
+97
+00:10:21,314 --> 00:10:27,226
+Let’s go back to the studio. When you have finished, click Sign out at the bottom of the menu.
+
+98
+00:10:30,611 --> 00:10:40,939
+And that’s everything. Remember: save as a Draft while you work, choose Published to go live, and leave the price empty with Featured ticked to announce a book as Coming soon.
+
+99
+00:10:41,093 --> 00:10:48,223
+If you ever need a reminder, the Guided tour button in the studio menu walks you through every page. Happy publishing!
