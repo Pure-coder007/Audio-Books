@@ -98,7 +98,7 @@ def test_footer_links_to_verified_social_profiles(client):
     for path in ['/', '/books', '/featured', '/contact', '/admin/login']:
         page = client.get(path).data.decode()
         footer = page.split('<footer', 1)[1]
-        for url in ['https://www.facebook.com/profile.php?id=61590071573615', 'https://www.instagram.com/myaudioshelf.official/',
+        for url in ['https://www.facebook.com/p/Myaudioshelf-61590071573615/', 'https://www.instagram.com/myaudioshelf.official/',
                 'https://x.com/Myaudioshelf', 'https://www.tiktok.com/@david_mozie']:
             assert f'href="{url}"' in footer
         assert footer.count('rel="noopener noreferrer me"') == 4

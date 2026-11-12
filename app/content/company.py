@@ -30,7 +30,7 @@ PROCESS=[('Submit your project','Tell us about the book, audience and production
 
 # Official profiles, verified October 2026. Shown in every page footer and the homepage schema.
 SOCIAL_LINKS = [
-    ('facebook', 'Facebook', 'https://www.facebook.com/profile.php?id=61590071573615'),
+    ('facebook', 'Facebook', 'https://www.facebook.com/p/Myaudioshelf-61590071573615/'),
     ('instagram', 'Instagram', 'https://www.instagram.com/myaudioshelf.official/'),
     ('x', 'X', 'https://x.com/Myaudioshelf'),
     ('tiktok', 'TikTok', 'https://www.tiktok.com/@david_mozie'),
