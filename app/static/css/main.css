@@ -3092,6 +3092,8 @@ html[data-color-mode=dark] .site-header::before{background:color-mix(in srgb,#14
 .site-footer,html[data-color-mode=dark] .site-footer{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 26%,transparent),color-mix(in srgb,var(--surface) 44%,transparent));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-top-color:color-mix(in srgb,var(--ink) 12%,transparent)}
 .footer-bottom{border-top-color:color-mix(in srgb,var(--ink) 14%,transparent)}
 .storydna-home{background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 42%,transparent) 0%,color-mix(in srgb,var(--surface) 28%,transparent) 60%);border-color:color-mix(in srgb,var(--ink) 14%,transparent);border-left-color:var(--lime);box-shadow:0 30px 70px -40px #0006,inset 0 1px 0 #ffffff1a;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+/* Contact form: the same see-through glass as the homepage panels. */
+.contact-panel{border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 42%,transparent) 0%,color-mix(in srgb,var(--surface) 30%,transparent) 60%);border-color:color-mix(in srgb,var(--ink) 14%,transparent);box-shadow:0 30px 70px -40px #0006,inset 0 1px 0 #ffffff1a;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .storydna-engines li{background:color-mix(in srgb,var(--paper) 34%,transparent);border-color:color-mix(in srgb,var(--ink) 12%,transparent)}
 .storydna-home .context-equation span:not(:last-child){background:color-mix(in srgb,var(--paper) 45%,transparent);border-color:color-mix(in srgb,var(--ink) 16%,transparent)}
 
