@@ -288,7 +288,7 @@ def web_manifest():
     shortcut = lambda name, path: {'name': name, 'url': path, 'icons': [icon('shortcut-96.png', '96x96')]}
     manifest = {'id': '/', 'name': 'MyAudioShelf', 'short_name': 'MyAudioShelf', 'lang': 'en-GB', 'dir': 'ltr',
         'description': 'Immersive audiobooks, dramatised productions and children’s audio. Listen a little. Discover a lot.',
-        'start_url': '/', 'scope': '/', 'display': 'standalone', 'background_color': '#ffffff', 'theme_color': '#111813',
+        'start_url': '/', 'scope': '/', 'display': 'standalone', 'background_color': '#111813', 'theme_color': '#111813',
         'categories': ['books', 'entertainment', 'education'], 'prefer_related_applications': False,
         'icons': [icon('app-192.png', '192x192'), icon('app-512.png', '512x512'),
             icon('app-maskable-192.png', '192x192', 'maskable'), icon('app-maskable-512.png', '512x512', 'maskable')],
