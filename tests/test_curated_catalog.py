@@ -1,6 +1,7 @@
 from app.curated_catalog import restore
 from app.extensions import db
-from app.models import Audiobook
+from app.models import Audiobook, Author
+from app.services.catalog_service import SAMPLE_AUTHOR_BIO
 
 
 def test_supplied_title_replaces_samples_and_is_preview_only(app,client):
@@ -11,7 +12,8 @@ def test_supplied_title_replaces_samples_and_is_preview_only(app,client):
         book=restore(app)
         book_id=book.id
         restore(app)
-        assert original.state=='archived'
+        # Nobody bought the sample, so it is deleted rather than archived.
+        assert db.session.get(Audiobook,app.config['TEST_BOOK_ID']) is None
         assert book.author.name=='David Mozie'
         assert book.asset('cover') and book.asset('trailer')
         assert book.asset('trailer').duration_seconds<=60
@@ -93,4 +95,24 @@ def test_footer_has_no_developer_credit(client):
     page = client.get('/').data
     assert b'TECHNEST' not in page and b'developer-credit' not in page
     # The header and footer use a 400px WebP copy of the logo, sized to avoid layout shift.
-    assert page.count(b'aud-logo-400.webp') == 2 and b'width="400" height="267"' in page
+    assert page.count(b'aud-logo-400.webp') == 2 and b'width="400" height="297"' in page
+
+
+def test_a_sample_on_a_past_order_is_archived_not_deleted(app, paid_order):
+    with app.app_context():
+        book=db.session.get(Audiobook,app.config['TEST_BOOK_ID'])
+        book.is_demo=True
+        db.session.commit()
+        restore(app)
+        kept=db.session.get(Audiobook,app.config['TEST_BOOK_ID'])
+        assert kept is not None and kept.state=='archived' and not kept.featured and not kept.saleable
+
+
+def test_sample_authors_are_removed_with_their_books(app):
+    with app.app_context():
+        book=db.session.get(Audiobook,app.config['TEST_BOOK_ID'])
+        book.is_demo=True
+        book.author.bio=SAMPLE_AUTHOR_BIO+' Replace it with your own verified author biography.'
+        db.session.commit()
+        restore(app)
+        assert db.session.scalar(db.select(Author).where(Author.slug=='test-author')) is None

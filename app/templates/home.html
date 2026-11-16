@@ -2,6 +2,7 @@
 price_tag, genre_image %} {% block title %}MyAudioShelf | Immersive Audiobooks, Children’s Audio & Production{% endblock %}
 {% block description %}Discover immersive audiobooks, children’s stories and dramatised audio from MyAudioShelf, or turn your manuscript into a professionally produced audiobook.{% endblock %}
 {% block head %}
+<script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/promo.js') }}" defer></script>
 <script type="application/ld+json" nonce="{{ g.csp_nonce }}">
   {{ {'@context': 'https://schema.org', '@graph': [
     {'@type': 'WebSite', '@id': config.BASE_URL + '/#website', 'name': 'MyAudioShelf', 'alternateName': ['My Audio Shelf', 'myaudioshelf.com'], 'url': config.BASE_URL + '/', 'publisher': {'@id': config.BASE_URL + '/#organization'}},
@@ -114,8 +115,8 @@ price_tag, genre_image %} {% block title %}MyAudioShelf | Immersive Audiobooks, 
     {% for title, text in [('StoryDNA Engine','Maps characters, locations,
     dialogue, scene boundaries and emotional states across the whole
     manuscript.'),('Sound Recommendation Engine','Recommends ambience and
-    production treatment from scene context, emotion and earlier creative
-    decisions.'),('Audio Continuity Engine','Recalls earlier story context and
+    production treatment from the context of the whole book: its story arc,
+    characters, emotions and every earlier creative decision.'),('Audio Continuity Engine','Recalls earlier story context and
     flags inconsistencies when characters, places or motifs return.')] %}
     <li>
       <span aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
@@ -265,4 +266,31 @@ price_tag, genre_image %} {% block title %}MyAudioShelf | Immersive Audiobooks, 
     >
   </form>
 </section>
+<dialog class="translation-promo" data-translation-promo data-href="{{ url_for('main.translated') }}" aria-labelledby="translation-promo-title" aria-describedby="translation-promo-text">
+  <div class="promo-card" tabindex="-1">
+    <button type="button" class="promo-close" data-promo-dismiss aria-label="Close">×</button>
+    <div class="promo-art" aria-hidden="true">
+      <svg class="promo-globe" viewBox="0 0 240 240" fill="none">
+        <defs><radialGradient id="promo-glow" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#d6ff3d" stop-opacity=".55"/><stop offset=".55" stop-color="#7bd23a" stop-opacity=".16"/><stop offset="1" stop-color="#0c140f" stop-opacity="0"/></radialGradient>
+        <linearGradient id="promo-band" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e7ff5a"/><stop offset="1" stop-color="#46b649"/></linearGradient></defs>
+        <circle cx="120" cy="124" r="112" fill="url(#promo-glow)"/>
+        <ellipse class="promo-orbit" cx="120" cy="124" rx="112" ry="34" stroke="#d6ff3d" stroke-opacity=".35" stroke-dasharray="2 7" transform="rotate(-18 120 124)"/>
+        <circle cx="120" cy="124" r="66" fill="#0f1a12" stroke="url(#promo-band)" stroke-width="3"/>
+        <g stroke="#d6ff3d" stroke-opacity=".72" stroke-width="1.6"><path d="M54 124h132M120 58c18 18 27 40 27 66s-9 48-27 66c-18-18-27-40-27-66s9-48 27-66Z"/><path d="M64 92c34 10 78 10 112 0M64 156c34-10 78-10 112 0"/></g>
+        <path d="M58 122a62 62 0 0 1 124 0" stroke="url(#promo-band)" stroke-width="9" stroke-linecap="round"/>
+        <rect x="40" y="112" width="26" height="44" rx="12" fill="url(#promo-band)"/><rect x="174" y="112" width="26" height="44" rx="12" fill="url(#promo-band)"/>
+        <g fill="#d6ff3d"><rect x="100" y="114" width="6" height="20" rx="3"/><rect x="110" y="106" width="6" height="36" rx="3"/><rect x="120" y="98" width="6" height="52" rx="3"/><rect x="130" y="108" width="6" height="32" rx="3"/><rect x="140" y="116" width="6" height="16" rx="3"/></g>
+        <circle class="promo-orbit-dot" cx="226" cy="90" r="4.5" fill="#d6ff3d"/>
+      </svg>
+      <div class="promo-greetings notranslate" translate="no"><span class="promo-greeting promo-greeting-1" lang="es"><b>¡Bienvenidos!</b><small>Español</small></span><span class="promo-greeting promo-greeting-2" lang="de"><b>Willkommen</b><small>Deutsch</small></span><span class="promo-greeting promo-greeting-3" lang="hi"><b>स्वागत है</b><small>हिन्दी</small></span><span class="promo-greeting promo-greeting-4" lang="fr"><b>Bienvenue</b><small>Français</small></span><span class="promo-greeting promo-greeting-5" lang="pt"><b>Bem-vindo</b><small>Português</small></span><span class="promo-greeting promo-greeting-6" lang="ar"><b>أهلاً وسهلاً</b><small>العربية</small></span><span class="promo-greeting promo-greeting-7" lang="zh"><b>欢迎</b><small>中文</small></span><span class="promo-greeting promo-greeting-8" lang="ja"><b>ようこそ</b><small>日本語</small></span></div>
+    </div>
+    <div class="promo-copy">
+      <span class="eyebrow"><span class="tiny-dot"></span> New on MyAudioShelf</span>
+      <h2 id="translation-promo-title">Stories, now in <em>your language.</em></h2>
+      <p id="translation-promo-text">We’re translating audiobooks into the languages you love, from French and Spanish to Arabic, Hindi and Chinese. Find a story you can hear in your own words.</p>
+      <ul class="promo-points"><li>Translated and voiced by our team</li><li>Free preview before you buy</li><li>Choose your language in one tap</li></ul>
+      <div class="promo-actions"><a class="button" href="{{ url_for('main.translated') }}" data-promo-go>Explore translated books <span aria-hidden="true">→</span></a><button type="button" class="promo-later" data-promo-dismiss>Maybe later</button></div>
+    </div>
+  </div>
+</dialog>
 {% endblock %}

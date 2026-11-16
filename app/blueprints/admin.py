@@ -6,11 +6,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError
 from ..extensions import db, limiter
 from ..models import (Audiobook, Author, Category, Chapter, MediaAsset, Order, PurchaseEntitlement,
-    ProductionEnquiry, AdminUser, AuditLog, AnalyticsEvent, EmailDelivery, NewsletterSubscriber, ListeningProgress, now, uid)
+    ProductionEnquiry, AdminUser, AuditLog, AnalyticsEvent, EmailDelivery, NewsletterSubscriber, ListeningProgress, BOOK_SECTIONS, now, uid)
 from ..services.access_service import admin_required, normalize_email
 from ..services.media_service import store_upload, publication_field_errors, media_path, AUDIO_ACCEPT
 from ..services.email_service import queue_access_email
+from ..services.catalog_service import times_bought, delete_audiobook
 from ..content.admin_tour import TOUR_PAGES, TOURS, TOUR_SIGN_INS
+from ..content.languages import BOOK_LANGUAGES, BOOK_LANGUAGE_NAMES
 from .main import visible_books
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -123,6 +125,8 @@ def books():
         query = query.where(Audiobook.featured.is_(True))
     elif view == 'coming_soon':
         query = query.where(Audiobook.featured.is_(True), Audiobook.price_minor <= 0)
+    elif view in {'translated', 'reviewed'}:
+        query = query.where(Audiobook.section == view)
     else:
         view = ''
     page = db.paginate(query, per_page=10, error_out=False)
@@ -154,6 +158,12 @@ def edit_book(book_id=None):
             style = request.form.get('production_style', book.production_style if book else 'Narrated')
             if style not in {'Narrated', 'Immersive', 'Full cast'}:
                 errors['production_style'] = 'Choose a valid production style.'
+            # Books keep a language from before the list existed until it is changed.
+            if text('language', 60) not in BOOK_LANGUAGE_NAMES and not (book and text('language', 60) == book.language):
+                errors['language'] = 'Choose the language from the list.'
+            section = request.form.get('section', book.section if book else 'shelf')
+            if section not in BOOK_SECTIONS:
+                errors['section'] = 'Choose where this book is listed.'
             state = text('state', 20)
             if state not in {'draft', 'published', 'archived'}:
                 errors['state'] = 'Choose Draft, Published or Archived.'
@@ -185,6 +195,7 @@ def edit_book(book_id=None):
                 if field in request.form:
                     setattr(book, field, text(field, limit))
             book.production_style = style
+            book.section = section
             book.currency = 'gbp'
             book.price_minor = int(amount * 100)
             for flag in ['featured', 'hero', 'homepage_visible']:
@@ -242,7 +253,8 @@ def edit_book(book_id=None):
             field_errors = {'title': 'This audiobook could not be saved because its details conflict with an existing record. Try a different title.'}
         book = db.session.get(Audiobook, book_id) if book_id else None
     categories = db.session.scalars(db.select(Category).order_by(Category.position, Category.name)).all()
-    return render_template('admin/edit_book.html', book=book, categories=categories, field_errors=field_errors, audio_accept=AUDIO_ACCEPT)
+    return render_template('admin/edit_book.html', book=book, categories=categories, field_errors=field_errors, audio_accept=AUDIO_ACCEPT,
+        languages=BOOK_LANGUAGES, known_languages=BOOK_LANGUAGE_NAMES, sections=BOOK_SECTIONS)
 
 @bp.get('/books/<string:book_id>/preview')
 @admin_required()
@@ -262,6 +274,43 @@ def preview_media(media_id):
     response = send_file(path, mimetype=asset.mime_type, conditional=True)
     response.headers['Cache-Control'] = 'private, no-store'
     return response
+
+@bp.post('/books/<string:book_id>/visibility')
+@admin_required('owner', 'editor')
+def book_visibility(book_id):
+    """Unpublish takes a book off the storefront; buyers keep it in their library. Publish puts it back after the usual checks."""
+    book = db.get_or_404(Audiobook, book_id)
+    back = request.form.get('next') if request.form.get('next', '').startswith('/admin/') else url_for('admin.books')
+    if request.form.get('action') == 'publish':
+        errors = publication_field_errors(book)
+        if errors:
+            flash(f'“{book.title}” can’t be published yet: ' + ' '.join(errors.values()), 'error')
+            return redirect(url_for('admin.edit_book', book_id=book.id))
+        book.state = 'published'
+        book.published_at = book.published_at or now()
+        audit('book.published', f'{book.id}: {book.title}')
+        flash(f'“{book.title}” is published and back on the storefront.', 'success')
+    else:
+        book.state = 'draft'
+        audit('book.unpublished', f'{book.id}: {book.title}')
+        flash(f'“{book.title}” is unpublished. It is hidden from the storefront; anyone who bought it still has it in their library.', 'success')
+    db.session.commit()
+    return redirect(back)
+
+@bp.route('/books/<string:book_id>/delete', methods=['GET', 'POST'])
+@admin_required('owner', 'editor')
+def delete_book(book_id):
+    book = db.get_or_404(Audiobook, book_id)
+    # A bought book stays on record so receipts and listeners' libraries keep working.
+    bought = times_bought(book)
+    if request.method == 'POST' and not bought:
+        title = book.title
+        audit('book.deleted', f'{book.id}: {title}')
+        delete_audiobook(book)
+        db.session.commit()
+        flash(f'“{title}” has been deleted.', 'success')
+        return redirect(url_for('admin.books'))
+    return render_template('admin/delete_book.html', book=book, bought=bought)
 
 @bp.post('/chapters/<string:chapter_id>/delete')
 @admin_required('owner', 'editor')

@@ -29,19 +29,6 @@ def test_render_gunicorn_initializes_database(monkeypatch):
     runner.assert_not_called()
 
 
-def test_sample_catalog_seed_is_idempotent(app, client):
-    from app.extensions import db
-    from app.models import Audiobook
-    from app.seed import TITLES
-    app.config.update(PRODUCTION=True, SAMPLE_CATALOG=True)
-    runner=app.test_cli_runner()
-    assert runner.invoke(args=['seed-demo']).exit_code == 0
-    assert runner.invoke(args=['seed-demo']).exit_code == 0
-    with app.app_context():
-        assert db.session.scalar(db.select(db.func.count()).select_from(Audiobook).where(Audiobook.is_demo.is_(True))) == len(TITLES)
-    assert b'The Last Train to Lagos' in client.get('/books').data
-
-
 def test_production_sample_cart_with_fresh_csrf(app, client):
     from app.extensions import db
     from app.models import Audiobook

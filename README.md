@@ -6,7 +6,7 @@ A working Flask/Jinja audiobook storefront, guest commerce flow, protected liste
 
 Double-click **start.command**, then open **http://127.0.0.1:5000**. Keep the Terminal window open while using the app. Stop the server with Ctrl+C.
 
-The database and twelve fictional demo titles have already been prepared in this workspace. This demo has playable sample narration and cover artwork. Demo checkout takes no money and grants no purchase entitlements.
+The local database starts empty: add audiobooks in the admin, or work against a copy of your own data. The live catalogue is managed at https://myaudioshelf.com/admin/.
 
 Admin: **http://127.0.0.1:5000/admin/**. The initial local credentials are in `instance/LOCAL_ADMIN.txt` (private, ignored by Git). Use `reset-admin-password` below to change the password.
 
@@ -19,7 +19,6 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 cp .env.example .env
 .venv/bin/python -m flask --app wsgi db upgrade
-.venv/bin/python -m flask --app wsgi seed-demo
 .venv/bin/python -m flask --app wsgi create-admin
 .venv/bin/python -m flask --app wsgi run --host 127.0.0.1 --port 5000
 ```
@@ -103,13 +102,13 @@ Docker: `docker build -t myaudioshelf .`. Run with environment variables and a p
 
 ## Scope and verification
 
-**64 automated tests pass.** Automated tests cover guest checkout price snapshots, payment signatures and idempotency, refunds and event order, magic-link expiry/single use, private range streaming, revoked access, progress validation, admin roles, publishing, upload checks, CSRF and page rendering. Desktop/mobile Chrome checks cover preview playback, demo cart checkout, menu behavior, failed requests and horizontal overflow. A separate isolated browser fixture verifies staff sign-in, draft creation, email-link redemption, private chapter playback, playback speed, saved resume and entitlement revocation. Preview screenshots are in `docs/`.
+**169 automated tests pass.** Automated tests cover guest checkout price snapshots, payment signatures and idempotency, refunds and event order, magic-link expiry/single use, private range streaming, revoked access, progress validation, admin roles, publishing, upload checks, CSRF and page rendering. Desktop/mobile Chrome checks cover preview playback, demo cart checkout, menu behavior, failed requests and horizontal overflow. A separate isolated browser fixture verifies staff sign-in, draft creation, email-link redemption, private chapter playback, playback speed, saved resume and entitlement revocation. Preview screenshots are in `docs/`.
 
-Live Stripe checkout and SMTP delivery still need your service credentials and an integration test. This workspace has not been deployed publicly. Background photograph sources are documented in `docs/IMAGE_CREDITS.md`. Detailed cast profile management, discounts, newsletter delivery campaigns, advanced analytics and dynamic section ordering are beyond this initial MVP.
+The platform is live at [myaudioshelf.com](https://myaudioshelf.com), hosted on Render behind Cloudflare, with payments through Stripe Checkout and audio in private Bunny storage. Background photograph sources are documented in `docs/IMAGE_CREDITS.md`. Detailed cast profile management, discounts, newsletter delivery campaigns, advanced analytics and dynamic section ordering are beyond this initial MVP.
 
-The StoryDNA, Sound Recommendation and Continuity Engines run in MyAudioShelf's production pipeline, outside this web application; `/innovation` presents them. A proposed in-app extension, the **Narrative Audio Map**, is recorded in `docs/NARRATIVE_AUDIO_MAP.md`.
+The StoryDNA, Sound Recommendation and Continuity Engines are part of MyAudioShelf's production pipeline and are maintained separately from this storefront codebase; `/innovation` presents them. The **Narrative Audio Map**, the scene-by-scene sound planning module, is specified in `docs/NARRATIVE_AUDIO_MAP.md`.
 
-Cart additions on book cards update the cart count in place and show a View cart notification. Server-rendered forms remain available when JavaScript is disabled. Fictional seed titles remain identified on their detail pages and during checkout; removing the global demo banner does not enable real sales of those samples.
+Cart additions on book cards update the cart count in place and show a View cart notification. Server-rendered forms remain available when JavaScript is disabled.
 
 ### Customer sign-in
 
@@ -128,11 +127,11 @@ For durable SQLite storage, attach a persistent disk at `/opt/render/project/src
 
 On Render, the repository's default `gunicorn.conf.py` also runs migrations once in the master process before workers start. This supports the existing `gunicorn wsgi:app ...` start command without a dashboard change. Local Gunicorn runs do not migrate automatically. Render disks and other service settings must still be configured in the dashboard.
 
-Render automatically restores the original 12 sample titles, authors, genres and available preview audio after migrations. Seeding skips existing titles. `SAMPLE_CATALOG=true` permits sample visibility without enabling real Stripe purchases of fictional books. Set `SAMPLE_CATALOG=false` in Render when replacing the sample catalogue with licensed titles.
+The platform is in production with its own catalogue. The fictional sample titles that shipped with the first prototype have been removed, with their seeding code and files; on every Render start, after migrations, any sample still in the database is deleted with its sample author, or archived if a past order refers to it so the receipt keeps working.
 
 ## Company and production brief
 
-The business plan is integrated into the existing storefront with About, Services, Immersive Audio, Children, Originals, Innovation and Contact pages. Discover groups the company navigation; the existing library, cart and admin routes remain intact. The homepage introduces production formats, comparison audio and the proposed narrative-aware Story Engine. Research capabilities are explicitly described as under development.
+The business plan is integrated into the existing storefront with About, Services, Immersive Audio, Children, Originals, Innovation and Contact pages. Discover groups the company navigation; the existing library, cart and admin routes remain intact. The homepage introduces production formats, comparison audio and the StoryDNA engine, and the Innovation page presents the StoryDNA, Sound Recommendation and Continuity Engines.
 
 Author enquiries include project information, optional private PDF/TXT/DOCX manuscripts (10 MB), and consent. Contact enquiries share the staff inbox with a recorded enquiry type. Staff owners/editors can download manuscripts; public visitors cannot. Run `db upgrade` when updating an installation; Render applies it automatically at startup.
 
@@ -144,7 +143,7 @@ See [the admin audiobook workflow](docs/ADMIN_AUDIOBOOK_WORKFLOW.md) for the Dra
 
 ## Supplied catalogue
 
-The fictional seed titles are archived and hidden. Render now restores the supplied “5000 Names of God” artwork and 52-second preview instead of seeding fictional titles. The supplied book appears as Coming soon until its price and sales readiness are confirmed. Full recordings are private files, excluded from Git; the 23 tracks imported locally need to be uploaded to the deployed persistent media storage before full listening on Render. Neon stores metadata and file references, not the recordings themselves. Existing historical references to archived sample titles are preserved.
+The fictional seed titles have been removed from the live catalogue. Render restores the supplied “5000 Names of God” artwork and 52-second preview instead of seeding fictional titles. The supplied book appears as Coming soon until its price and sales readiness are confirmed. Full recordings are private files, excluded from Git; the 23 tracks imported locally need to be uploaded to the deployed persistent media storage before full listening on Render. Neon stores metadata and file references, not the recordings themselves. Existing historical references to archived sample titles are preserved.
 
 Paid customers can now download their audiobook from the purchase library: full-file titles download directly, while chapter-based titles download as an ordered ZIP with cover and contents. Every request checks a verified paid order and active entitlement. Full recordings must be available in the deployed private media storage. See the admin workflow guide for price/genre editing.
 

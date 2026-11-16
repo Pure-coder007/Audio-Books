@@ -273,7 +273,12 @@ COOKIES = [
         ('p', 'The cookie lasts for the length of your visit, or for up to seven days when you sign in to your listening library. Because it is strictly necessary to provide the service you request, it does not require consent under UK law.'),
     ]),
     ('Preferences stored in your browser', [
-        ('p', 'Your browser’s local storage remembers two choices you make on the website: your light or dark theme, and whether book sounds are switched on. These stay on your device, are not sent to us, and can be cleared at any time in your browser settings.'),
+        ('p', 'Your browser’s local storage remembers a few choices you make on the website: your light or dark theme, whether book sounds are switched on, and whether you have already seen our app and translated audiobooks announcements. These stay on your device, are not sent to us, and can be cleared at any time in your browser settings.'),
+    ]),
+    ('Site translation', [
+        ('p', 'You can read the website in another language with the language button at the top of every page. Translation is provided by Google Translate and only starts after you choose a language: until then, your browser does not contact Google for it.'),
+        ('p', 'When you choose a language, we store it in a cookie named <b>googtrans</b> for up to a year so that every page opens in that language, and your browser sends the text of each page you view to Google to be translated. Google may set its own cookies while it provides the translation. Choose <b>English</b> in the language panel to stop translating and remove the cookie.'),
+        ('p', 'Translations are automatic and may contain mistakes. Prices, purchases and our policies are governed by the English version.'),
     ]),
     ('Analytics and marketing', [
         ('p', 'We do not currently use advertising, social media tracking, or third-party analytics cookies. We count page views and audio previews on our own servers without placing cookies.'),

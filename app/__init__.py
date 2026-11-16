@@ -11,6 +11,7 @@ from werkzeug.exceptions import HTTPException
 from flask_wtf.csrf import CSRFError, generate_csrf
 from .config import Config
 from .extensions import db, migrate, csrf, limiter
+from .content.languages import SITE_LANGUAGE_GROUPS, chosen_site_language
 
 class Deferred(Sequence):
     """A list that runs its query only when a template first reads it."""
@@ -116,13 +117,17 @@ def create_app(test_config=None):
             session['cart'] = list(dict.fromkeys(value for old in session['cart'][:30]
                 if (value := resolve_id('audiobook', old))))
 
+    def site_language():
+        # The language a visitor chose for the site, from the cookie Google Translate reads.
+        return chosen_site_language(request.cookies.get('googtrans'))
+
     @app.context_processor
     def shared():
         from .genre_themes import genre_theme, genre_copy
         from .content.company import SOCIAL_LINKS
         from .blueprints.main import shelf_genres
         return {'genre_theme': genre_theme, 'genre_copy': genre_copy, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(shelf_genres),
-            'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE']}
+            'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE'], 'site_language': site_language(), 'site_language_groups': SITE_LANGUAGE_GROUPS}
     @app.template_filter('long_date')
     def long_date(value):
         from datetime import date
@@ -173,6 +178,14 @@ def create_app(test_config=None):
             policy = response.headers['Content-Security-Policy']
             response.headers['Content-Security-Policy'] = policy.replace("img-src 'self' data:", "img-src 'self' data: " + google).replace(
                 "script-src 'self'", "script-src 'self' https://www.googletagmanager.com").replace("default-src 'self';", "default-src 'self'; connect-src 'self' " + google + ";")
+        if site_language() and not request.path.startswith('/admin'):
+            # Google Translate loads only for visitors who chose another language: scripts carrying this page's nonce may load it.
+            translate = 'https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com'
+            policy = response.headers['Content-Security-Policy']
+            policy = policy.replace("img-src 'self' data:", "img-src 'self' data: https://www.google.com https://fonts.gstatic.com " + translate).replace(
+                "style-src 'self'", "style-src 'self' https://translate.googleapis.com https://www.gstatic.com").replace("script-src 'self'", "script-src 'self' 'strict-dynamic' " + translate)
+            policy = policy.replace("connect-src 'self'", "connect-src 'self' " + translate) if 'connect-src' in policy else policy.replace("default-src 'self';", "default-src 'self'; connect-src 'self' " + translate + ";")
+            response.headers['Content-Security-Policy'] = policy
         if getattr(g, 'csp_nonce', None):
             response.headers['Content-Security-Policy'] = response.headers['Content-Security-Policy'].replace("script-src 'self'", "script-src 'self' 'nonce-" + g.csp_nonce + "'")
         if request.path.startswith(('/admin', '/library', '/checkout', '/cart', '/media/private', '/login', '/register')):

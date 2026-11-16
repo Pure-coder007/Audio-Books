@@ -96,6 +96,34 @@ def featured():
         .order_by(Audiobook.published_at.desc(), Audiobook.id.desc()).limit(48)).all()
     return render_template('featured.html', coming_soon=coming_soon)
 
+@bp.get('/translated')
+def translated():
+    from ..content.languages import BOOK_LANGUAGES, BOOK_LANGUAGE_NAMES
+    # Every English book is listed here under English, beside the translations; each book also stays on the bookshelf.
+    listed = or_(Audiobook.section == 'translated', Audiobook.language == 'English')
+    query = visible_books().where(listed)
+    counts = dict(db.session.execute(published_books().where(listed)
+        .with_only_columns(Audiobook.language, db.func.count()).group_by(Audiobook.language)).all())
+    language = request.args.get('language', '').strip()
+    if language and language not in BOOK_LANGUAGE_NAMES | counts.keys():
+        return redirect(url_for('main.translated'))
+    if language:
+        query = query.where(Audiobook.language == language)
+    books = db.session.scalars(query.order_by(Audiobook.published_at.desc(), Audiobook.id.desc()).limit(96)).all()
+    # Each language with books has its own indexable page; an empty one stays out of search.
+    canonical = seo.absolute(url_for('main.translated', language=language or None)) if books else None
+    trail = [('Home', '/'), ('Translated books', url_for('main.translated'))] + ([(language, url_for('main.translated', language=language))] if language else [])
+    return render_template('translated.html', books=books, language=language, counts=counts, total=sum(counts.values()),
+        languages=BOOK_LANGUAGES,
+        canonical=canonical, noindex=not books, schema=seo.graph(seo.breadcrumbs(*trail)) if books else None)
+
+@bp.get('/reviewed')
+def reviewed():
+    books = db.session.scalars(visible_books().where(Audiobook.section == 'reviewed')
+        .order_by(Audiobook.published_at.desc(), Audiobook.id.desc()).limit(96)).all()
+    return render_template('reviewed.html', books=books, noindex=not books,
+        schema=seo.graph(seo.breadcrumbs(('Home', '/'), ('Reviewed books', url_for('main.reviewed')))) if books else None)
+
 @bp.get('/books/<slug>')
 def book(slug):
     book = db.session.scalar(visible_books().where(Audiobook.slug == slug))
@@ -238,7 +266,9 @@ def sitemap():
     from ..content.articles import ARTICLES
     page = lambda path, lastmod=None, image=None: {'loc': seo.absolute(path), 'lastmod': lastmod, 'image': image and seo.absolute(image)}
     books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False)).order_by(Audiobook.title)).all()
-    pages = [page(url_for('main.home')), page(url_for('main.catalog')), page(url_for('main.featured')), page(url_for('main.production')),
+    pages = [page(url_for('main.home')), page(url_for('main.catalog')), page(url_for('main.featured')),
+        *([page(url_for('main.translated'))] if any(b.section == 'translated' or b.language == 'English' for b in books) else []),
+        *([page(url_for('main.reviewed'))] if any(b.section == 'reviewed' for b in books) else []), page(url_for('main.production')),
         *(page('/' + slug) for slug in PAGES), page(url_for('main.resources'), max(a['updated'] for a in ARTICLES.values())),
         *(page(url_for('main.article', slug=slug), article['updated']) for slug, article in ARTICLES.items()),
         page(url_for('main.contact')), *(page('/' + slug) for slug in DOCUMENTS)]

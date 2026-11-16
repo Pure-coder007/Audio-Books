@@ -12,6 +12,11 @@ toggle?.addEventListener('click', () => {
   document.getElementById('main-nav').classList.toggle('open', expanded);
 });
 document.querySelectorAll('[data-dismiss]').forEach(button => button.addEventListener('click', () => button.parentElement.remove()));
+// Translated books: choosing a language shows its books straight away.
+document.querySelectorAll('[data-language-picker]').forEach(form => {
+  form.classList.add('is-enhanced');
+  form.querySelector('select').addEventListener('change', () => form.requestSubmit());
+});
 const preview = document.getElementById('preview-audio');
 const player = document.getElementById('preview-player');
 let selectedPreview = null;
@@ -304,7 +309,7 @@ navMenus.forEach(menu=>menu.addEventListener('toggle',()=>{if(menu.open)navMenus
 document.addEventListener('click',event=>navMenus.forEach(menu=>{if(!menu.contains(event.target))menu.open=false;}));
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const menu=navMenus.find(item=>item.open);if(menu){menu.open=false;menu.querySelector('summary').focus();}});
 // Desktop pointers open the menus on hover; touch and the mobile menu keep tap-to-open.
-const hoverNav=window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1051px)');
+const hoverNav=window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1461px)');
 navMenus.forEach(menu=>{
   let closeTimer;
   menu.addEventListener('pointerenter',event=>{if(event.pointerType!=='mouse'||!hoverNav.matches)return;clearTimeout(closeTimer);menu.open=true;});

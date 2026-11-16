@@ -14,12 +14,13 @@
   <meta name="theme-color" content="#111813"><meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any"><link rel="icon" href="{{ url_for('static', filename='images/brand/favicon-192.png') }}" type="image/png" sizes="192x192"><link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}" sizes="180x180">
   <link rel="manifest" href="/manifest.webmanifest"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="MyAudioShelf"><meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  <script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/theme.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   {% block head %}{% endblock %}
-  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/install.js') }}" defer></script>
-  {% if config.GA_MEASUREMENT_ID %}<meta name="analytics-id" content="{{ config.GA_MEASUREMENT_ID }}">{% for name in get_flashed_messages(category_filter=['analytics']) %}<meta name="analytics-event" content="{{ name }}">{% endfor %}<script src="{{ url_for('static', filename='js/analytics.js') }}" defer></script>{% endif %}
+  <script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  <script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/install.js') }}" defer></script>
+  <script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/translate.js') }}" defer></script>
+  {% if config.GA_MEASUREMENT_ID %}<meta name="analytics-id" content="{{ config.GA_MEASUREMENT_ID }}">{% for name in get_flashed_messages(category_filter=['analytics']) %}<meta name="analytics-event" content="{{ name }}">{% endfor %}<script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/analytics.js') }}" defer></script>{% endif %}
 </head>
 {% set active_genre = selected_genre if selected_genre else (book.categories[0] if book and book.categories else none) %}
 <body class="theme-{{ genre_theme(active_genre.slug if active_genre else request.args.get('collection')).key }}{% if request.endpoint == 'main.home' %} homepage{% endif %}">
@@ -27,26 +28,31 @@
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header">
-  <a class="brand" href="{{ url_for('main.home') }}" aria-label="MyAudioShelf home"><img class="brand-logo" src="{{ url_for('static', filename='images/brand/aud-logo-400.webp') }}" alt="MyAudioShelf" width="400" height="267" fetchpriority="high"></a>
-  <button class="nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+  <a class="brand" href="{{ url_for('main.home') }}" aria-label="MyAudioShelf home"><img class="brand-logo" src="{{ url_for('static', filename='images/brand/aud-logo-400.webp') }}" alt="MyAudioShelf" width="400" height="297" fetchpriority="high"></a>
   <nav id="main-nav" aria-label="Main navigation">
-    <a href="/" class="{{ 'active' if request.endpoint == 'main.home' }}">Home</a>
     <a href="/books" class="{{ 'active' if request.endpoint in ['main.catalog','main.category','main.book'] }}">The bookshelf</a>
     <a href="{{ url_for('main.featured') }}" class="{{ 'active' if request.endpoint == 'main.featured' }}">Featured</a>
+    <a href="{{ url_for('main.translated') }}" class="{{ 'active' if request.endpoint == 'main.translated' }}">Translated books</a>
+    <a href="{{ url_for('main.reviewed') }}" class="{{ 'active' if request.endpoint == 'main.reviewed' }}">Reviewed books</a>
     <a href="/innovation" class="nav-innovation {{ 'active' if request.path == '/innovation' }}">Innovation</a>
-    <details class="nav-discover"><summary class="{{ 'active' if request.endpoint == 'main.company' and request.path != '/innovation' }}">Discover <span aria-hidden="true">⌄</span></summary><div class="nav-discover-menu">{% for slug,label in [('about','About'),('services','Our services'),('immersive-audio','Immersive audio'),('children','Children'),('originals','Our Originals')] %}<a href="/{{ slug }}" {{ 'aria-current=page' if request.path == '/' ~ slug }}>{{ label }}</a>{% endfor %}</div></details>
+    <details class="nav-discover"><summary class="{{ 'active' if (request.endpoint == 'main.company' and request.path != '/innovation') or request.endpoint in ['main.production', 'main.contact'] }}">Discover <span aria-hidden="true">⌄</span></summary><div class="nav-discover-menu">{% for slug,label in [('about','About'),('services','Our services'),('immersive-audio','Immersive audio'),('children','Children'),('originals','Our Originals')] %}<a href="/{{ slug }}" {{ 'aria-current=page' if request.path == '/' ~ slug }}>{{ label }}</a>{% endfor %}<a href="{{ url_for('main.production') }}" {{ 'aria-current=page' if request.endpoint == 'main.production' }}>For authors & publishers</a><a href="/contact" {{ 'aria-current=page' if request.endpoint == 'main.contact' }}>Contact</a></div></details>
     <details class="nav-discover nav-services"><summary>Services <span aria-hidden="true">⌄</span></summary><div class="nav-discover-menu nav-services-menu"><span class="eyebrow">What we do for your book</span>{% for tone, title, text in [('review','Audio Book Review','We review books, make them audio, and publish them.'),('production','Production','Professional narration, recording, editing, mastering and delivery.'),('translation','Translation','We translate your book into any language and give it the voice it deserves.'),('publishing','Publishing','Audiobook publishing that connects you with a wider audience through different publishing formats.')] %}<div class="nav-service nav-service-{{ tone }}"><strong>{{ title }}</strong><p>{{ text }}</p></div>{% endfor %}</div></details>
-    <a class="{{ 'active' if request.endpoint == 'main.production' }}" href="{{ url_for('main.production') }}">For authors & publishers</a>
-    <a href="/contact" class="{{ 'active' if request.endpoint == 'main.contact' }}">Contact</a>
-  <div class="nav-tools"><button type="button" class="book-sound-toggle" aria-label="Mute book-opening sounds" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z"/><path class="sound-waves" d="M16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-slash" d="m17 9 5 6m0-6-5 6"/></svg></button><a class="library-link" href="{{ url_for('library.index') }}">My purchases</a><a class="cart-link" aria-label="Shopping cart, {{ cart_count }} audiobook{{ 's' if cart_count != 1 }}" href="{{ url_for('cart.index') }}"> {{ cart_icon() }}<span class="cart-label">Cart</span><span class="cart-count">{{ cart_count }}</span></a></div>
+    <a class="nav-menu-only" href="{{ url_for('library.index') }}">My purchases</a>
   </nav>
-<button type="button" class="theme-toggle" aria-label="Switch to light theme">☀</button>
+  <div class="header-actions">
+    <button type="button" class="book-sound-toggle header-icon" aria-label="Mute book-opening sounds" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z"/><path class="sound-waves" d="M16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-slash" d="m17 9 5 6m0-6-5 6"/></svg></button>
+    <button type="button" class="site-language-button header-icon notranslate" translate="no" data-site-language-open aria-haspopup="dialog" aria-label="Change the site language (now {{ site_language[1] if site_language else 'English' }})" title="Change language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9s1.3-6.3 3.9-9Z"/></svg><span>{{ site_language[0].split('-')[0]|upper if site_language else 'EN' }}</span></button>
+    <button type="button" class="theme-toggle header-icon" aria-label="Switch to light theme">☀</button>
+    <a class="library-link header-outline" href="{{ url_for('library.index') }}">My purchases</a>
+    <a class="cart-link header-cart" aria-label="Shopping cart, {{ cart_count }} audiobook{{ 's' if cart_count != 1 }}" href="{{ url_for('cart.index') }}"> {{ cart_icon() }}<span class="cart-label">Cart</span><span class="cart-count">{{ cart_count }}</span></a>
+    <button class="nav-toggle header-icon" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+  </div>
 </header>
 <div class="flash-wrap" aria-live="polite">{% for category, message in get_flashed_messages(with_categories=true) if category != 'analytics' %}<div class="flash {{ category }}">{{ message }}<button type="button" data-dismiss aria-label="Dismiss message">×</button></div>{% endfor %}</div>
 <div id="cart-feedback" class="cart-feedback" role="status" aria-live="polite" hidden></div>
 <main id="main">{% block content %}{% endblock %}</main>
 <footer class="site-footer">
- <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo-400.webp') }}" alt="MyAudioShelf" width="400" height="267" loading="lazy"></a><p>Immersive stories.<br>Extraordinary listening.</p><div class="footer-social"><span class="eyebrow">Follow the Shelf</span><ul class="social-links">{% for key, label, url in social_links %}<li><a class="social-link social-{{ key }}" href="{{ url }}" target="_blank" rel="noopener noreferrer me" aria-label="MyAudioShelf on {{ label }} (opens in a new tab)" title="{{ label }}">{{ social_icon(key) }}</a></li>{% endfor %}</ul></div><button type="button" class="footer-app" data-install-open hidden><img src="{{ url_for('static', filename='icons/app-192.png') }}" alt="" width="38" height="38" loading="lazy"><span><strong>Get the app</strong><small>Free · no app store</small></span></button></div>
+ <div><a class="footer-brand" href="{{ url_for('main.home') }}"><img src="{{ url_for('static', filename='images/brand/aud-logo-400.webp') }}" alt="MyAudioShelf" width="400" height="297" loading="lazy"></a><p>Immersive stories.<br>Extraordinary listening.</p><div class="footer-social"><span class="eyebrow">Follow the Shelf</span><ul class="social-links">{% for key, label, url in social_links %}<li><a class="social-link social-{{ key }}" href="{{ url }}" target="_blank" rel="noopener noreferrer me" aria-label="MyAudioShelf on {{ label }} (opens in a new tab)" title="{{ label }}">{{ social_icon(key) }}</a></li>{% endfor %}</ul></div><button type="button" class="footer-app" data-install-open hidden><img src="{{ url_for('static', filename='icons/app-192.png') }}" alt="" width="38" height="38" loading="lazy"><span><strong>Get the app</strong><small>Free · no app store</small></span></button></div>
  <div><span class="eyebrow">Find your story</span><a href="{{ url_for('main.catalog') }}">Browse audiobooks</a><a href="{{ url_for('main.featured') }}">Featured & coming soon</a><a href="{{ url_for('main.catalog', collection='children') }}">Children’s shelf</a><a href="{{ url_for('main.resources') }}">Guides & resources</a><a href="{{ url_for('library.index') }}">My purchases</a></div>
  <div><span class="eyebrow">Make something heard</span><a href="/about">About MyAudioShelf</a><a href="/services">Our services</a><a href="/immersive-audio">Immersive audio</a><a href="/children">MyAudioShelf Kids</a><a href="/originals">Our Originals</a><a href="/innovation">Innovation</a><a href="/contact">Contact</a><a href="{{ url_for('main.production') }}">Audiobook production</a><a href="{{ url_for('admin.login') }}">Staff sign-in</a><p>Made for stories that stay with you.</p></div>
  <div class="footer-bottom"><div class="footer-policy"><a href="/privacy">Privacy Policy</a><a href="/terms">Terms &amp; Conditions</a><a href="/cookies">Cookies</a><a href="/copyright">Copyright</a><a href="/accessibility">Accessibility</a>{% if config.GA_MEASUREMENT_ID %}<button type="button" class="footer-cookie-settings" data-consent-open>Cookie settings</button>{% endif %}</div><span>© 2026 MyAudioShelf Ltd. All Rights Reserved.</span><span>Listen a little. Discover a lot.</span></div>
@@ -57,4 +63,17 @@
  <button type="button" id="preview-close" class="icon-button" aria-label="Close trailer player">×</button>
  <span id="preview-status" role="status"></span>
 </div>
+<dialog class="language-dialog notranslate" translate="no" data-site-language-dialog aria-labelledby="language-dialog-title">
+ <div class="language-dialog-card">
+  <div class="language-dialog-head"><div><span class="eyebrow"><span class="tiny-dot"></span> MyAudioShelf in your language</span><h2 id="language-dialog-title">Choose your language.</h2><p>Every page is translated for you. Audiobooks play in the language they were recorded in.</p></div><button type="button" class="language-dialog-close" data-site-language-close aria-label="Close">×</button></div>
+  <label class="language-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr-only">Search languages</span><input type="search" data-language-search placeholder="Search {{ site_language_groups|map(attribute=1)|map('length')|sum + 1 }} languages…" autocomplete="off" enterkeyhint="search"></label>
+  <div class="language-dialog-body">
+   <button type="button" class="language-option language-original{{ ' is-current' if not site_language }}" data-language="en" data-search="english original" {{ 'aria-current=true' if not site_language }}><span class="language-own">English</span><span class="language-english">Original</span></button>
+   {% for group, choices in site_language_groups %}<section class="language-group" data-language-group aria-label="{{ group }}"><h3>{{ group }}</h3><div class="language-grid">{% for code, english, own in choices %}<button type="button" class="language-option{{ ' is-current' if site_language and site_language[0] == code }}" data-language="{{ code }}" data-search="{{ english }} {{ own }} {{ code }}" {{ 'aria-current=true' if site_language and site_language[0] == code }}><span class="language-own">{{ own }}</span>{% if own != english %}<span class="language-english">{{ english }}</span>{% endif %}</button>{% endfor %}</div></section>{% endfor %}
+   <p class="language-empty" data-language-empty hidden>No language matches your search.</p>
+  </div>
+  <div class="language-switching" aria-hidden="true"><span class="loading-spinner"></span></div>
+ </div>
+</dialog>
+<div id="google-translate-element" hidden></div>
 </body></html>

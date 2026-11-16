@@ -4,6 +4,7 @@ import shutil
 from mutagen import File
 from .extensions import db
 from .models import Audiobook,Author,Category,MediaAsset,now
+from .services.catalog_service import remove_samples
 
 SLUG='5000-names-of-god'
 # Featured titles announced before pricing. Staff add a price, preview and audio later in Shelf studio.
@@ -69,8 +70,8 @@ def restore_coming_soon(app,author,spec):
     return book
 
 def restore(app):
-    # Preserve references from historical orders while removing samples from all shelves.
-    db.session.execute(db.update(Audiobook).where(Audiobook.is_demo.is_(True)).values(state='archived',hero=False,featured=False,homepage_visible=False,saleable=False))
+    # The platform is live: fictional samples are deleted, or archived if a past order refers to one.
+    remove_samples()
     author=db.session.scalar(db.select(Author).where(Author.slug=='david-mozie'))
     if not author:
         author=Author(name='David Mozie',slug='david-mozie');db.session.add(author)

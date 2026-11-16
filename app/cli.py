@@ -45,15 +45,7 @@ def register_commands(app):
     def restore_curated():
         from .curated_catalog import restore
         restore(app)
-        click.echo('Supplied catalogue restored; fictional samples archived.')
-
-    @app.cli.command('seed-demo')
-    def seed_demo():
-        if app.config['PRODUCTION'] and not app.config['SAMPLE_CATALOG']:
-            raise click.ClickException('Set SAMPLE_CATALOG=true to restore sample titles in production.')
-        from .seed import seed
-        seed(app)
-        click.echo('Demo shelf ready. Fictional titles cannot be sold through Stripe.')
+        click.echo('Supplied catalogue restored; fictional samples removed.')
 
     @app.cli.command('deliver-emails')
     def deliver_emails():

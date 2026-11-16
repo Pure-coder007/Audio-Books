@@ -1,0 +1,10 @@
+{% extends 'base.html' %}{% from 'macros.html' import book_grid %}
+{% block title %}Reviewed Audiobooks | MyAudioShelf{% endblock %}
+{% block description %}Audiobooks from the MyAudioShelf Audio Book Review service: read and reviewed by our team, then shaped into stories built for listening.{% endblock %}
+{% block content %}<div class="section-shell page-shell reviewed-page">
+<div class="page-heading reviewed-heading"><span class="eyebrow"><span class="tiny-dot"></span> Read, reviewed, recorded</span><h1>Reviewed books.</h1><p>Books that came through our Audio Book Review service: read and reviewed by our team, then shaped into stories built for the ear.</p></div>
+<section class="shelf-section" aria-labelledby="reviewed-results-title">
+{% if books %}<div class="section-heading"><div><span class="eyebrow">{{ books|length }} audiobook{{ 's' if books|length != 1 }}</span><h2 id="reviewed-results-title">Fresh from review.</h2></div><a class="underlined" href="{{ url_for('main.production') }}">Have your book reviewed ↗</a></div>{{ book_grid(books) }}
+{% else %}<div class="empty-state"><h2 id="reviewed-results-title">Reviewed books are on their way.</h2><p>The first titles from our review service will appear here. Browse the bookshelf in the meantime.</p><div class="empty-actions"><a class="button secondary" href="{{ url_for('main.catalog') }}">Browse all audiobooks</a><a class="button" href="{{ url_for('main.production') }}">Have your book reviewed ↗</a></div></div>{% endif %}
+</section>
+</div>{% endblock %}

@@ -1,6 +1,6 @@
 # Business brief integration
 
-The existing Flask storefront, purchase library, cart, staff CMS, dark/light theme controls and book-opening animations remain in place. Public registration remains disabled.
+MyAudioShelf Ltd (Companies House 17533587) operates this storefront live at https://myaudioshelf.com. The Flask storefront, purchase library, cart, staff CMS, dark/light theme controls and book-opening animations remain in place. Listeners sign in to their library with the email used at checkout; public self-registration is not offered.
 
 ## Public pages
 
@@ -13,13 +13,13 @@ The existing Flask storefront, purchase library, cart, staff CMS, dark/light the
 - `/innovation`: StoryDNA Engine, persistent Story Intelligence Profile, Sound Recommendation Engine, Audio Continuity Engine and Author Control Layer, presented as live production technology. The engines run in the production pipeline, outside this web application.
 - `/production`: author/publisher form, project metadata, optional private manuscript and six-stage process.
 - `/contact`: general, author, children, partnership, creative, innovation/investment and accessibility enquiries.
-- `/privacy`, `/terms`, `/accessibility`: public platform information. Business-specific legal review and company/contact particulars remain owner tasks before commercial launch.
+- `/privacy`, `/terms`, `/cookies`, `/copyright`, `/accessibility`: public policies, naming MyAudioShelf Ltd and its registered office.
 
-Home, Bookshelf, Discover, Authors & Publishers and Contact keep the fixed navbar compact. Discover exposes the six company/content pages. Footer links expose policies and staff access. Social URLs are omitted until official accounts are provided.
+The fixed navbar keeps the main shelves and the Discover and Services menus together. Discover exposes the company and content pages, including author submissions and contact. Footer links expose policies, staff access and the official Facebook, Instagram, X and TikTok accounts.
 
 ## Working submissions and files
 
-Contact and project submissions persist in the existing admin enquiries inbox. Staff see enquiry type and project metadata. Manuscripts support PDF, UTF-8 TXT and non-macro DOCX, with a 10 MB upload cap, basic file validation and random storage filenames. Files are served as attachments only to owner/editor staff; they are not publicly addressable. Media cleanup retains enquiry attachments. No automatic manuscript analysis is claimed or performed.
+Contact and project submissions persist in the existing admin enquiries inbox. Staff see enquiry type and project metadata. Manuscripts support PDF, UTF-8 TXT and non-macro DOCX, with a 10 MB upload cap, basic file validation and random storage filenames. Files are served as attachments only to owner/editor staff; they are not publicly addressable. Media cleanup retains enquiry attachments. Manuscripts are read and assessed by the production team as part of the Audio Book Review service; the storefront stores them securely for that review and does not analyse their text itself.
 
 Newsletter first names are stored alongside consent-based email registration. The existing durable email outbox handles listening-access emails; enquiry auto-replies and newsletter campaigns are not enabled without mail/content setup.
 
@@ -29,9 +29,11 @@ Available production comparison assets take priority; otherwise the bundled demo
 
 First-party aggregate page views, starts/completions, author submissions and contact submissions are recorded without introducing advertising cookies. Dashboard counts show page views, completions and contacts. These are event counts, not unique visitors or verified conversion rates. Geographic reporting, comprehensive device reporting and an external analytics dashboard remain future integrations. Static demonstration audio is counted in aggregate events.
 
-## Future work, as described in the brief
+## Production technology and roadmap
 
-The StoryDNA, sound recommendation and continuity engines run in MyAudioShelf's production pipeline rather than in this web application. Interactive/adaptive audio, subscriptions, parental controls and personalised listening remain proposed capabilities.
+The StoryDNA, Sound Recommendation and Continuity Engines are part of MyAudioShelf's production pipeline and are maintained separately from this storefront codebase; `/innovation` presents them.
+
+The storefront currently sells individual audiobooks with free previews, guest checkout and a private listening library. The next storefront releases on the roadmap are author subscription plans, interactive and adaptive audio, parental controls and personalised listening. Each will be documented here as it ships.
 
 Production imagery uses the established genre photograph assets; no stock photograph is claimed as the company's staff or studio. Verified behind-the-scenes photographs, licensed production recordings, official social links and business contact particulars can be added when provided.
 

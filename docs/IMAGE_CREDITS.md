@@ -16,6 +16,6 @@ The platform uses photographs found through web search and downloaded locally fr
 
 Source pages describe these photographs as free to use. See the [Pexels license](https://www.pexels.com/license/) for the provider’s terms. Files live in `app/static/images/genres/`; visitors do not load images from third-party servers.
 
-The user-provided logo was copied unchanged from `aud_logo.png` to `app/static/images/brand/aud-logo.png` and retains its transparency. It is used in the navbar and footer.
+The user-provided logo (the “Immersive Audio” edition, November 2026) is in `app/static/images/brand/aud-logo.png`, with its white background removed so it sits on the site's dark and light themes. It is used in the navbar, footer, emails, app icons and the link preview image `app/static/images/app/share.jpg`.
 
 The full-page background opacity is 19% in light mode and 28% in dark mode. Genre headers and discovery tiles use stronger imagery, with readable foreground text. Additional admin-created genres fall back to the library theme until a matching asset and entry are added to `app/genre_themes.py`.

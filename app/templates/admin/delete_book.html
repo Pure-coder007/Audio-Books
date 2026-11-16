@@ -1,0 +1,8 @@
+{% extends 'admin/base.html' %}{% block admin_content %}
+<div class="section-heading"><div><span class="eyebrow">Delete audiobook</span><h1>{{ book.title }}</h1></div></div>
+<section class="delete-confirm">
+{% if bought %}<h2>This book can’t be deleted.</h2><p>It has been bought {{ bought }} time{{ 's' if bought != 1 }}, so it stays on record: buyers keep it in their library and their receipts stay correct. Unpublish it instead to remove it from the storefront.</p>
+<div class="delete-confirm-actions">{% if book.state == 'published' %}<form method="post" action="{{ url_for('admin.book_visibility', book_id=book.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button" name="action" value="unpublish">Unpublish instead</button></form>{% endif %}<a class="button secondary" href="{{ url_for('admin.edit_book', book_id=book.id) }}">Back to the book</a></div>
+{% else %}<h2>Delete “{{ book.title }}” permanently?</h2><p>The book, its cover, preview, chapters and audio are removed from the platform. This can’t be undone. To hide it but keep it, unpublish it instead.</p>
+<div class="delete-confirm-actions"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button danger">Delete permanently</button></form>{% if book.state == 'published' %}<form method="post" action="{{ url_for('admin.book_visibility', book_id=book.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button secondary" name="action" value="unpublish">Unpublish instead</button></form>{% endif %}<a class="text-button" href="{{ url_for('admin.edit_book', book_id=book.id) }}">Cancel</a></div>{% endif %}
+</section>{% endblock %}

@@ -11,7 +11,7 @@
 {% macro book_card(book) %}
 <article class="book-card">
  <a class="cover-wrap" href="{{ url_for('main.book', slug=book.slug) }}">{{ cover_image(book, 360, 540, '(max-width: 560px) 88vw, (max-width: 1050px) 44vw, 290px') }}<span class="cover-cta">Discover this story ↗</span></a>
- <div class="book-card-info"><div class="book-meta"><span>{{ book.production_style }}</span><span>{{ book.duration_label }}</span></div>
+ <div class="book-card-info"><div class="book-meta"><span>{{ book.production_style }}</span>{% if book.language != 'English' %}<span class="notranslate" translate="no">{{ book.language }}</span>{% endif %}<span>{{ book.duration_label }}</span></div>
  <h3><a href="{{ url_for('main.book', slug=book.slug) }}">{{ book.title }}</a></h3><p class="book-author"><a href="{{ url_for('main.author', slug=book.author.slug) }}">{{ book.author.name }}</a></p>
  <div class="card-bottom">{{ price_tag(book) }}<div class="card-controls">{{ trailer(book, 'Preview') }}{% if book.saleable %}<form data-cart-add data-book-title="{{ book.title }}" method="post" action="{{ url_for('cart.add', book_id=book.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="card-cart-button" aria-label="Add {{ book.title }} to cart" title="Add to cart">{{ cart_icon() }}</button></form>{% endif %}</div></div>
 </div></article>

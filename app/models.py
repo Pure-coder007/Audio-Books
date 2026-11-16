@@ -25,6 +25,9 @@ class Category(db.Model):
     slug = db.Column(db.String(100), unique=True, nullable=False)
     position = db.Column(db.Integer, default=0)
 
+# Where a book is listed besides the bookshelf: its own page in the main navigation.
+BOOK_SECTIONS = {'shelf': 'Main bookshelf only', 'translated': 'Translated books', 'reviewed': 'Reviewed books'}
+
 class Audiobook(db.Model):
     id = db.Column(db.String(32), primary_key=True, default=uid)
     slug = db.Column(db.String(180), unique=True, nullable=False)
@@ -51,6 +54,7 @@ class Audiobook(db.Model):
     children = db.Column(db.Boolean, default=False)
     is_demo = db.Column(db.Boolean, default=False)
     homepage_visible = db.Column(db.Boolean, default=True)
+    section = db.Column(db.String(20), default='shelf', server_default='shelf', nullable=False)
     seo_title = db.Column(db.String(180), default='')
     seo_description = db.Column(db.String(300), default='')
     published_at = db.Column(db.DateTime)
@@ -74,7 +78,7 @@ class Audiobook(db.Model):
     def cover_url(self):
         from flask import url_for
         media = self.asset('cover')
-        return url_for('main.public_media', media_id=media.id) if media else url_for('static', filename=f'covers/{self.slug}.svg') if self.is_demo else url_for('static', filename='covers/placeholder.svg')
+        return url_for('main.public_media', media_id=media.id) if media else url_for('static', filename='covers/placeholder.svg')
     def cover_src(self, width):
         from flask import url_for
         media = self.asset('cover')
