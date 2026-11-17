@@ -3289,7 +3289,7 @@ body>.skiptranslate,iframe.skiptranslate,.goog-te-banner-frame,#goog-gt-tt,.goog
 }
 @media(prefers-reduced-motion:reduce){.language-select,.promo-greeting,.promo-orbit-dot{animation:none}.language-dialog[open]{animation:none}.promo-card,.translation-promo::backdrop{transition:none}}
 
-/* Header: logo, page links, then actions (sounds, language, theme, purchases, cart). The menu folds behind a button below 1460px. */
+/* Header: logo, page links, then actions (sound/language/theme group, Sign in menu, cart). The menu folds behind a button below 1640px. */
 .site-header{display:flex;align-items:center;flex-wrap:nowrap;gap:clamp(18px,2.4vw,40px);min-height:96px;padding:10px clamp(16px,3.6vw,64px);border-bottom:1px solid color-mix(in srgb,var(--ink) 11%,transparent)}
 .site-header .brand{flex-shrink:0}
 .site-header .brand-logo{width:118px;height:88px}
@@ -3310,7 +3310,7 @@ body>.skiptranslate,iframe.skiptranslate,.goog-te-banner-frame,#goog-gt-tt,.goog
 .site-header .header-cart .cart-label{display:inline}
 .site-header .header-actions .header-cart .cart-count{display:inline-grid;width:auto;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--on-accent);color:var(--lime);font-size:12px;font-weight:800;line-height:1}
 .site-header .nav-toggle{display:none}
-@media(max-width:1460px){
+@media(max-width:1640px){
   .site-header{flex-wrap:nowrap}
   .site-header>nav{display:none;position:absolute;top:100%;left:0;right:0;width:100%;padding:16px 24px 24px;max-height:calc(100dvh - 95px);overflow-y:auto;border:0;border-top:1px solid var(--line);box-shadow:0 15px 24px #0002;background:color-mix(in srgb,var(--paper) 86%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5)}
   .site-header>nav.open{display:flex;flex-direction:column;align-items:stretch;gap:0}
@@ -3582,7 +3582,6 @@ html[data-color-mode=dark] .status-review,html[data-color-mode=dark] .status-con
 .site-header .author-link{gap:8px}
 .site-header .author-link svg{width:16px;height:16px}
 .site-header .author-link.is-active{border-color:var(--lime)}
-@media(max-width:1640px) and (min-width:1461px){.site-header .library-link{display:none}}
 
 @media(max-width:1180px){
   .plan-grid,.included-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -3654,3 +3653,30 @@ html[data-color-mode=dark] .status-review,html[data-color-mode=dark] .status-con
 .password-checks li.is-ok .check-dot{border-color:var(--lime);background:var(--lime);box-shadow:inset 0 0 0 3px var(--surface)}
 @media(max-width:640px){.recovery-shell{padding-block:30px 70px}.recovery-card{padding:34px 22px 28px}}
 @media(prefers-reduced-motion:reduce){.recovery-card,.recovery-badge.is-sent svg{animation:none}}
+
+/* Header actions: one pill for sound, language and theme; one Sign in menu for listeners and authors. */
+.site-header .header-actions{gap:12px}
+.header-tools{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid color-mix(in srgb,var(--ink) 15%,transparent);border-radius:13px;background:color-mix(in srgb,var(--surface) 26%,transparent)}
+.site-header .header-tools .header-icon{width:36px;height:36px;border:0;border-radius:10px;background:transparent}
+.site-header .header-tools .header-icon:hover,.site-header .header-tools .header-icon:focus-visible{background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.site-header .header-tools .site-language-button{width:auto;padding:0 10px}
+.site-header .account-menu{position:relative;margin:0;padding:0;border:0}
+.site-header .account-menu>summary{display:inline-flex;align-items:center;list-style:none;cursor:pointer;gap:8px;margin:0;padding:0 14px 0 15px;font-weight:600}
+.account-menu>summary::-webkit-details-marker{display:none}
+.account-menu>summary svg{width:17px;height:17px}
+.account-caret{margin-left:2px;font-size:13px;line-height:1;transform:translateY(-2px);transition:transform .2s}
+.account-menu[open] .account-caret{transform:translateY(1px) rotate(180deg)}
+.site-header .account-menu.is-active>summary,.account-menu[open]>summary{border-color:var(--lime)}
+.account-menu-panel{position:absolute;top:calc(100% + 12px);right:0;z-index:40;width:310px;padding:8px;border-radius:18px;background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);box-shadow:0 28px 60px -24px #000b;-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);animation:plan-in .22s cubic-bezier(.22,1,.36,1)}
+.account-option{display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;color:var(--ink);transition:background .15s}
+.account-option:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
+.account-option svg{width:38px;height:38px;flex-shrink:0;padding:9px;border-radius:11px;background:color-mix(in srgb,var(--forest) 14%,transparent);color:var(--forest)}
+.account-option span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.account-option strong{font-size:14px}
+.account-option small{font-size:12px;color:var(--muted);line-height:1.4}
+.account-cta{display:block;margin:6px 4px 2px;padding:11px 12px;border-top:1px solid color-mix(in srgb,var(--ink) 10%,transparent);font-size:12px;color:var(--muted)}
+.account-cta b{color:var(--forest)}
+.account-cta:hover{color:var(--ink)}
+@media(min-width:1641px){.site-header>nav{gap:clamp(18px,1.5vw,30px)}}
+@media(max-width:700px){.account-menu{display:none}.header-tools{padding:2px;gap:0}.site-header .header-tools .header-icon{width:34px;height:34px}.site-header .header-tools .site-language-button{width:34px;padding:0}}
+@media(max-width:380px){.header-tools .book-sound-toggle{display:none}}

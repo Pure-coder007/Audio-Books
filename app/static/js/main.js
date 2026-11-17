@@ -304,12 +304,12 @@ document.addEventListener('submit',event=>{
 });
 
 // Keep discovery navigation accessible without adding another navigation bar.
-const navMenus=[...document.querySelectorAll('.nav-discover')];
+const navMenus=[...document.querySelectorAll('.nav-discover, .account-menu')];
 navMenus.forEach(menu=>menu.addEventListener('toggle',()=>{if(menu.open)navMenus.forEach(other=>{if(other!==menu)other.open=false;});}));
 document.addEventListener('click',event=>navMenus.forEach(menu=>{if(!menu.contains(event.target))menu.open=false;}));
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const menu=navMenus.find(item=>item.open);if(menu){menu.open=false;menu.querySelector('summary').focus();}});
 // Desktop pointers open the menus on hover; touch and the mobile menu keep tap-to-open.
-const hoverNav=window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1461px)');
+const hoverNav=window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1641px)');
 navMenus.forEach(menu=>{
   let closeTimer;
   menu.addEventListener('pointerenter',event=>{if(event.pointerType!=='mouse'||!hoverNav.matches)return;clearTimeout(closeTimer);menu.open=true;});
