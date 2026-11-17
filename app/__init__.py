@@ -74,8 +74,8 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
     limiter.init_app(app)
-    from .blueprints import main, cart, checkout, library, admin, auth
-    for module in [main, cart, checkout, library, admin, auth]:
+    from .blueprints import main, cart, checkout, library, admin, auth, authors
+    for module in [main, cart, checkout, library, admin, auth, authors]:
         app.register_blueprint(module.bp)
     from .cli import register_commands
     register_commands(app)
@@ -127,7 +127,9 @@ def create_app(test_config=None):
         from .content.company import SOCIAL_LINKS
         from .blueprints.main import shelf_genres
         return {'genre_theme': genre_theme, 'genre_copy': genre_copy, 'social_links': SOCIAL_LINKS, 'genres': [] if getattr(g, 'rendering_error', False) else Deferred(shelf_genres),
-            'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE'], 'site_language': site_language(), 'site_language_groups': SITE_LANGUAGE_GROUPS}
+            'cart_count': len(session.get('cart', [])), 'demo_mode': app.config['DEMO_MODE'], 'site_language': site_language(), 'site_language_groups': SITE_LANGUAGE_GROUPS,
+            # Only the header label: whether an author session cookie exists (the account page checks it properly).
+            'author_signed_in': bool(session.get('author_id'))}
     @app.template_filter('long_date')
     def long_date(value):
         from datetime import date
@@ -188,7 +190,7 @@ def create_app(test_config=None):
             response.headers['Content-Security-Policy'] = policy
         if getattr(g, 'csp_nonce', None):
             response.headers['Content-Security-Policy'] = response.headers['Content-Security-Policy'].replace("script-src 'self'", "script-src 'self' 'nonce-" + g.csp_nonce + "'")
-        if request.path.startswith(('/admin', '/library', '/checkout', '/cart', '/media/private', '/login', '/register')):
+        if request.path.startswith(('/admin', '/library', '/checkout', '/cart', '/media/private', '/login', '/register', '/authors')):
             response.headers['Cache-Control'] = 'private, no-store'
             response.headers['X-Robots-Tag'] = 'noindex, nofollow'
         if app.config['PRODUCTION']:

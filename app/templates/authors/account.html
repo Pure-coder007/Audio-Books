@@ -1,0 +1,94 @@
+{% extends 'base.html' %}{% from 'partials/plan_ui.html' import check, price, icon %}
+{% block title %}Your author account | MyAudioShelf{% endblock %}
+{% block content %}
+{% set status_labels = {'new': ('Received', 'received'), 'reviewing': ('In review', 'review'), 'contacted': ('We’ve been in touch', 'contacted'), 'accepted': ('Accepted', 'accepted'), 'closed': ('Closed', 'closed')} %}
+<div class="section-shell page-shell author-dashboard">
+
+<header class="dashboard-head">
+ <div>
+  <span class="eyebrow"><span class="tiny-dot"></span> Author account{% if author.pen_name %} · {{ author.pen_name }}{% endif %}</span>
+  <h1>{{ 'Welcome to MyAudioShelf' if welcome else 'Welcome back' }}, <em>{{ author.first_name }}.</em></h1>
+  <p class="lead">Your plan, your free trial and every book project you send us, in one place.</p>
+ </div>
+ <form method="post" action="{{ url_for('authors.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button secondary">Sign out</button></form>
+</header>
+
+{% if welcome %}<div class="welcome-banner" role="status">{{ icon('spark') }}<div><strong>Your account is ready, and your {{ current.name }} plan is reserved.</strong><p>Plans launch in {{ launch }}. Your {{ trial_days }}-day free trial starts that day, and you won’t be asked for a card until you decide to continue.</p></div></div>{% endif %}
+
+<div class="dashboard-grid">
+ <section class="dash-card plan-summary-card" id="plan" aria-labelledby="plan-title">
+  <div class="dash-card-head"><span class="eyebrow">Your plan</span><span class="status-pill status-reserved">Trial reserved</span></div>
+  <div class="plan-summary-top"><h2 id="plan-title">{{ current.name }}</h2>{{ price(current) }}</div>
+  <p class="plan-tagline">{{ current.tagline }} {{ current.summary }}</p>
+  <ul class="plan-features">{% for feature in current.features %}<li>{{ check() }}<span>{{ feature }}</span></li>{% endfor %}</ul>
+  <details class="change-plan">
+   <summary>Change plan</summary>
+   <form method="post" action="{{ url_for('authors.change_plan') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <fieldset class="plan-picker">
+     <legend class="sr-only">Choose a plan</legend>
+     {% for plan in plans %}<label class="plan-option{{ ' is-popular' if plan.popular }}"><input type="radio" name="plan" value="{{ plan.key }}" {{ 'checked' if plan.key == current.key }}><span class="plan-option-name">{{ plan.name }}</span><span class="plan-option-price">{{ 'from ' if plan.from_price }}£{{ plan.price }}<small>/mo</small></span></label>{% endfor %}
+    </fieldset>
+    <button class="button">Save plan</button>
+   </form>
+  </details>
+ </section>
+
+ <section class="dash-card trial-card" aria-labelledby="trial-title">
+  <span class="eyebrow">Your free trial</span>
+  <h2 id="trial-title">{{ trial_days }} days, on us.</h2>
+  <ol class="progress-steps">
+   <li class="is-done"><span class="step-dot">{{ check() }}</span><div><strong>Account created</strong><p>{{ author.created_at.strftime('%-d %B %Y') if author.created_at }}</p></div></li>
+   <li class="is-done"><span class="step-dot">{{ check() }}</span><div><strong>{{ current.name }} plan reserved</strong><p>No card needed.</p></div></li>
+   <li class="is-next"><span class="step-dot"></span><div><strong>Plans launch · trial begins</strong><p>{{ launch }}. Every feature of your plan opens for {{ trial_days }} days.</p></div></li>
+   <li><span class="step-dot"></span><div><strong>Day {{ trial_days }}: your choice</strong><p>Continue, switch plan, or cancel and pay nothing.</p></div></li>
+  </ol>
+ </section>
+</div>
+
+<section class="dash-card projects-card" id="projects" aria-labelledby="projects-title">
+ <div class="dash-card-head"><div><span class="eyebrow">Your book projects</span><h2 id="projects-title">{{ 'Your books, in production.' if author.projects else 'Your first book starts here.' }}</h2></div><a class="button" href="{{ url_for('main.production') }}#project-form">{{ icon('upload') }} Send a manuscript</a></div>
+ {% if author.projects %}
+ <ul class="project-list">
+  {% for project in author.projects %}{% set label = status_labels.get(project.status, (project.status|capitalize, 'received')) %}
+  <li class="project-row">
+   <span class="project-icon">{{ icon('book') }}</span>
+   <div class="project-main"><strong>{{ project.title }}</strong><span>Sent {{ project.created_at.strftime('%-d %b %Y') }}{% if project.details.get('preferred_style') %} · {{ project.details.preferred_style }}{% endif %}{% if project.details.get('word_count') %} · {{ '{:,}'.format(project.details.word_count|int) }} words{% endif %}{% if project.attachment_name %} · manuscript attached{% endif %}</span></div>
+   <span class="status-pill status-{{ label[1] }}">{{ label[0] }}</span>
+  </li>
+  {% endfor %}
+ </ul>
+ {% else %}
+ <div class="projects-empty">
+  {{ icon('book') }}
+  <p>Send the production team your manuscript or a sample. Each project you send while signed in appears here, so you can follow it from <strong>received</strong> to <strong>accepted</strong>.</p>
+ </div>
+ {% endif %}
+</section>
+
+<section class="dash-card account-details" id="security" aria-labelledby="details-title">
+ <div class="account-details-grid">
+  <div>
+   <span class="eyebrow">Account details</span>
+   <h2 id="details-title">You.</h2>
+   <dl class="detail-list">
+    <div><dt>Name</dt><dd>{{ author.name }}</dd></div>
+    {% if author.pen_name %}<div><dt>Pen name</dt><dd>{{ author.pen_name }}</dd></div>{% endif %}
+    <div><dt>Email</dt><dd>{{ author.email }}</dd></div>
+    <div><dt>Member since</dt><dd>{{ author.created_at.strftime('%B %Y') if author.created_at }}</dd></div>
+   </dl>
+  </div>
+  <form method="post" action="{{ url_for('authors.change_password') }}" class="password-form">
+   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+   <span class="eyebrow">Security</span>
+   <h3>Change your password</h3>
+   <input type="text" name="username" value="{{ author.email }}" autocomplete="username" hidden>
+   <label for="current-password">Current password</label>
+   <input id="current-password" type="password" name="current_password" autocomplete="current-password" required maxlength="128">
+   <label for="new-password">New password</label>
+   <input id="new-password" type="password" name="new_password" autocomplete="new-password" required minlength="10" maxlength="128">
+   <button class="button secondary">Update password</button>
+  </form>
+ </div>
+</section>
+</div>{% endblock %}

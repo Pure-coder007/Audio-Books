@@ -326,3 +326,24 @@ document.querySelectorAll('audio').forEach(audio=>{
 });
 
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&toggle?.getAttribute('aria-expanded')==='true'){toggle.click();toggle.focus();}});
+
+// New-password forms: show/hide the password and tick off its checks as the person types.
+document.querySelectorAll('[data-password-form]').forEach(form => {
+  const input = form.querySelector('[data-password-new]');
+  const confirm = form.querySelector('[data-password-confirm]');
+  const min = Number(form.dataset.min) || 10;
+  const update = () => {
+    form.querySelector('[data-check=length]')?.classList.toggle('is-ok', input.value.length >= min);
+    form.querySelector('[data-check=match]')?.classList.toggle('is-ok', input.value.length > 0 && input.value === confirm.value);
+  };
+  input.addEventListener('input', update);
+  confirm.addEventListener('input', update);
+  const reveal = form.querySelector('[data-password-reveal]');
+  reveal?.addEventListener('click', () => {
+    const show = input.type === 'password';
+    input.type = confirm.type = show ? 'text' : 'password';
+    reveal.textContent = show ? 'Hide' : 'Show';
+    reveal.setAttribute('aria-pressed', String(show));
+    reveal.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  });
+});

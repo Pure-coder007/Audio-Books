@@ -181,6 +181,9 @@ class ProductionEnquiry(db.Model):
     project_details = db.Column(db.Text, default='{}')
     attachment_key = db.Column(db.String(200))
     attachment_name = db.Column(db.String(180))
+    # Set when a signed-in author sends the project, so it appears in their account.
+    author_account_id = db.Column(db.String(32), db.ForeignKey('author_account.id'), index=True)
+    author_account = db.relationship('AuthorAccount', back_populates='projects')
     @property
     def details(self):
         import json
@@ -232,6 +235,38 @@ class Customer(db.Model):
     id = db.Column(db.String(32), primary_key=True, default=uid)
     email = db.Column(db.String(254), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=now)
+
+
+class AuthorAccount(db.Model):
+    """An author or publisher who signs up for a subscription plan. Separate from listeners (Customer) and staff (AdminUser)."""
+    id = db.Column(db.String(32), primary_key=True, default=uid)
+    name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(254), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    plan = db.Column(db.String(20), nullable=False, default='author')
+    pen_name = db.Column(db.String(150), default='')
+    session_version = db.Column(db.String(32), default=uid, nullable=False)
+    created_at = db.Column(db.DateTime, default=now)
+    last_login_at = db.Column(db.DateTime)
+    projects = db.relationship('ProductionEnquiry', back_populates='author_account', order_by='ProductionEnquiry.created_at.desc()')
+    @property
+    def plan_details(self):
+        from .content.plans import plan
+        return plan(self.plan)
+    @property
+    def first_name(self):
+        return (self.name.split() or [''])[0]
+
+
+class PasswordReset(db.Model):
+    """A single-use, short-lived password reset link for an author or a staff member. Only the token's hash is stored."""
+    id = db.Column(db.String(32), primary_key=True, default=uid)
+    token_hash = db.Column(db.String(64), unique=True, nullable=False)
+    account_type = db.Column(db.String(10), nullable=False)
+    account_id = db.Column(db.String(32), nullable=False, index=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=now)
 
 

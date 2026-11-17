@@ -1,0 +1,3 @@
+{% extends 'base.html' %}{% from 'partials/recovery.html' import forgot %}
+{% block title %}Reset your password | MyAudioShelf for Authors{% endblock %}
+{% block content %}{{ forgot(sent, 'Author account', url_for('authors.forgot'), url_for('authors.login'), 'an author account') }}{% endblock %}

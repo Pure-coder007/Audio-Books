@@ -1,0 +1,51 @@
+{% extends 'base.html' %}{% from 'partials/plan_ui.html' import check, price, trial_points %}
+{% block title %}Start your free trial | MyAudioShelf for Authors{% endblock %}
+{% block description %}Create a MyAudioShelf author account and reserve your plan. {{ trial_days }}-day free trial, no card needed.{% endblock %}
+{% macro field_error(name) %}{% if errors[name] %}<p class="field-error" id="{{ name }}-error">{{ errors[name] }}</p>{% endif %}{% endmacro %}
+{% block content %}<div class="section-shell page-shell author-auth author-signup">
+<div class="author-auth-intro">
+ <span class="eyebrow"><span class="tiny-dot"></span> MyAudioShelf for authors</span>
+ <h1>Start your <em>free</em> trial.</h1>
+ <p class="lead">Create your author account and reserve a plan. Plans launch in {{ launch }}, and your {{ trial_days }}-day free trial starts on launch day.</p>
+ {{ trial_points(trial_days) }}
+ {# One summary per plan: the one matching the selected radio button shows (CSS :has), the server's choice without it. #}
+ {% for plan in plans %}<aside class="chosen-plan{{ ' is-default' if plan.key == chosen.key }}" data-plan="{{ plan.key }}">
+  <span class="eyebrow">Your plan</span>
+  <div class="chosen-plan-head"><h2>{{ plan.name }}</h2>{{ price(plan) }}</div>
+  <p>{{ plan.summary }}</p>
+  <ul class="plan-features">{% for feature in plan.features %}<li>{{ check() }}<span>{{ feature }}</span></li>{% endfor %}</ul>
+  <a class="underlined" href="{{ url_for('main.pricing') }}">Compare every plan ↗</a>
+ </aside>{% endfor %}
+</div>
+
+<form class="author-panel" method="post" action="{{ url_for('authors.signup') }}" novalidate>
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+ <span class="eyebrow">Create your author account</span>
+ <h2>Choose your plan.</h2>
+ <fieldset class="plan-picker">
+  <legend class="sr-only">Plan</legend>
+  {% for plan in plans %}
+  <label class="plan-option{{ ' is-popular' if plan.popular }}"><input type="radio" name="plan" value="{{ plan.key }}" {{ 'checked' if plan.key == chosen.key }}><span class="plan-option-name">{{ plan.name }}{% if plan.popular %}<small>Popular</small>{% endif %}</span><span class="plan-option-price">{{ 'from ' if plan.from_price }}£{{ plan.price }}<small>/mo</small></span></label>
+  {% endfor %}
+ </fieldset>
+ <div class="author-fields">
+  <label for="signup-name">Your name</label>
+  <input id="signup-name" name="name" autocomplete="name" maxlength="150" required value="{{ request.form.get('name', '') }}" {% if errors.name %}aria-invalid="true" aria-describedby="name-error"{% endif %}>
+  {{ field_error('name') }}
+  <label for="signup-pen-name">Pen name <span class="optional">optional</span></label>
+  <input id="signup-pen-name" name="pen_name" maxlength="150" value="{{ request.form.get('pen_name', '') }}">
+  <label for="signup-email">Email address</label>
+  <input id="signup-email" name="email" type="email" autocomplete="email" maxlength="254" required placeholder="you@example.com" value="{{ request.form.get('email', '') }}" {% if errors.email %}aria-invalid="true" aria-describedby="email-error"{% endif %}>
+  {{ field_error('email') }}
+  <label for="signup-password">Password</label>
+  <input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="{{ min_password }}" maxlength="128" required aria-describedby="{{ 'password-error ' if errors.password }}password-hint" {% if errors.password %}aria-invalid="true"{% endif %}>
+  <p class="field-hint" id="password-hint">At least {{ min_password }} characters.</p>
+  {{ field_error('password') }}
+  <div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+  <label class="checkbox-label"><input type="checkbox" name="consent" required {{ 'checked' if request.form.get('consent') }} {% if errors.consent %}aria-invalid="true" aria-describedby="consent-error"{% endif %}> <span>I agree to the <a href="/terms">terms</a> and <a href="/privacy">privacy policy</a>.</span></label>
+  {{ field_error('consent') }}
+ </div>
+ <button class="button full-width">Create author account ↗</button>
+ <p class="author-switch">Already have an account? <a href="{{ url_for('authors.login') }}">Log in</a></p>
+</form>
+</div>{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}{% from 'partials/plan_ui.html' import check, price, trial_points, icon %}
+{% block title %}Pricing: Audiobook Production Plans for Authors | MyAudioShelf{% endblock %}
+{% block description %}MyAudioShelf plans for authors and publishers: Lite £19, Author £39, Pro Author £79 and Publisher from £199 a month, each with a {{ trial_days }}-day free trial.{% endblock %}
+{% block content %}<div class="section-shell page-shell pricing-page">
+
+<section class="pricing-hero">
+ <span class="eyebrow"><span class="tiny-dot"></span> Plans for authors &amp; publishers</span>
+ <h1>Your book, ready<br>to be <em>heard.</em></h1>
+ <p class="lead">MyAudioShelf is audiobook production software for authors. The StoryDNA Engine reads your whole manuscript, plans the sound of every scene, and you approve each decision.</p>
+ {{ trial_points(trial_days) }}
+ <p class="launch-note"><span class="launch-pill">Launching {{ launch }}</span> Sign up today to reserve your plan. Your free trial starts on launch day.</p>
+</section>
+
+<section class="plan-grid" aria-label="Subscription plans">
+ {% for plan in plans %}
+ <article class="plan-card{{ ' is-popular' if plan.popular }}" aria-labelledby="plan-{{ plan.key }}">
+  {% if plan.popular %}<span class="plan-badge">Most popular</span>{% endif %}
+  <h2 id="plan-{{ plan.key }}">{{ plan.name }}</h2>
+  <p class="plan-tagline">{{ plan.tagline }}</p>
+  {{ price(plan) }}
+  <p class="plan-summary">{{ plan.summary }}</p>
+  {% if author and author.plan == plan.key %}
+  <a class="button secondary plan-cta" href="{{ url_for('authors.account') }}#plan">Your current plan</a>
+  {% elif author %}
+  <a class="button{{ '' if plan.popular else ' secondary' }} plan-cta" href="{{ url_for('authors.account') }}#plan">Switch to {{ plan.name }}</a>
+  {% else %}
+  <a class="button{{ '' if plan.popular else ' secondary' }} plan-cta" href="{{ url_for('authors.signup', plan=plan.key) }}">Start free trial</a>
+  {% endif %}
+  <ul class="plan-features">{% for feature in plan.features %}<li{{ ' class=plan-feature-lead' if loop.first }}>{{ check() }}<span>{{ feature }}</span></li>{% endfor %}</ul>
+  {% if plan.from_price %}<a class="plan-secondary" href="{{ url_for('main.contact', enquiry_type='author') }}">or talk to our team about your list</a>{% endif %}
+ </article>
+ {% endfor %}
+</section>
+<p class="plan-footnote">Prices are per month, in pounds sterling. Every plan starts with a {{ trial_days }}-day free trial, with no card needed.</p>
+
+<section class="plan-included" aria-labelledby="included-title">
+ <div class="pricing-section-head"><span class="eyebrow">In every plan</span><h2 id="included-title">Built on the StoryDNA Engine.</h2><p>The same production technology the MyAudioShelf studio uses, in your hands. <a class="underlined" href="/innovation">How it works ↗</a></p></div>
+ <div class="included-grid">
+  {% for name, title, text in [
+   ('dna', 'Reads the whole book', 'StoryDNA analyses the full manuscript for characters, places, dialogue, scenes and emotional turns, not one page at a time.'),
+   ('sound', 'Plans every scene’s sound', 'The Sound Recommendation Engine suggests ambience and treatment from the context of the whole story.'),
+   ('control', 'You make every call', 'Accept, change or reject each recommendation. Nothing goes into your production without your approval.'),
+   ('rights', 'Your rights stay yours', 'Sending us your manuscript never transfers your copyright. Anything else is agreed with you in writing first.')] %}
+  <article class="included-item">{{ icon(name) }}<h3>{{ title }}</h3><p>{{ text }}</p></article>
+  {% endfor %}
+ </div>
+</section>
+
+<section class="trial-steps" aria-labelledby="trial-title">
+ <div class="pricing-section-head"><span class="eyebrow">How the free trial works</span><h2 id="trial-title">Reserve today. Start on launch day.</h2></div>
+ <ol class="trial-timeline">
+  <li><span class="trial-when">Today</span><h3>Create your author account</h3><p>Choose a plan and set a password. It takes a minute, and there is no card to enter.</p></li>
+  <li><span class="trial-when">{{ launch }}</span><h3>Your {{ trial_days }}-day trial begins</h3><p>Plans open and your trial starts, with every feature of the plan you chose.</p></li>
+  <li><span class="trial-when">Day {{ trial_days }}</span><h3>Decide what’s next</h3><p>Stay on your plan, switch to another, or cancel and pay nothing at all.</p></li>
+ </ol>
+</section>
+
+<section class="pricing-faq" aria-labelledby="faq-title">
+ <div class="pricing-section-head"><span class="eyebrow">Questions authors ask</span><h2 id="faq-title">Good to know.</h2></div>
+ <div class="faq-list">{% for question, answer in faq %}<details class="faq-item"{{ ' open' if loop.first }}><summary>{{ question }}<span class="faq-toggle" aria-hidden="true"></span></summary><p>{{ answer }}</p></details>{% endfor %}</div>
+</section>
+
+<section class="pricing-cta">
+ <div><span class="eyebrow">Prefer to talk it through?</span><h2>Let’s hear about your book.</h2><p>Tell the production team about your book and what you have in mind. We’ll reply personally and help you choose the right plan, or a full studio production.</p></div>
+ <div class="pricing-cta-actions">{% if not author %}<a class="button" href="{{ url_for('authors.signup') }}">Start your free trial ↗</a>{% endif %}<a class="underlined" href="{{ url_for('main.production') }}#project-form">Tell us about your book ↗</a></div>
+</section>
+</div>{% endblock %}

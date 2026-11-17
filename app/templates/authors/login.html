@@ -1,0 +1,32 @@
+{% extends 'base.html' %}{% from 'partials/plan_ui.html' import icon %}
+{% block title %}Author login | MyAudioShelf{% endblock %}
+{% block description %}Log in to your MyAudioShelf author account to manage your plan and book projects.{% endblock %}
+{% block content %}<div class="section-shell page-shell author-auth author-login">
+<div class="author-auth-intro">
+ <span class="eyebrow"><span class="tiny-dot"></span> MyAudioShelf for authors</span>
+ <h1>Back to your <em>books.</em></h1>
+ <p class="lead">Log in to see your plan, your free trial and every book project you’ve sent the production team.</p>
+ <ul class="login-perks">
+  <li>{{ icon('book') }}<span><strong>Your book projects</strong>Follow each manuscript from received to accepted.</span></li>
+  <li>{{ icon('control') }}<span><strong>Your plan</strong>Switch plans whenever your list grows.</span></li>
+  <li>{{ icon('lock') }}<span><strong>Your account</strong>Private to you, protected by your password.</span></li>
+ </ul>
+</div>
+
+<form class="author-panel" method="post" action="{{ url_for('authors.login') }}">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+ {% if request.args.get('next') %}<input type="hidden" name="next" value="{{ request.args.get('next') }}">{% endif %}
+ <span class="eyebrow">Author account</span>
+ <h2>Welcome back.</h2>
+ <div class="author-fields">
+  <label for="author-email">Email address</label>
+  <input id="author-email" type="email" name="email" autocomplete="username" required maxlength="254" placeholder="you@example.com" value="{{ request.form.get('email', '') }}">
+  <label for="author-password">Password</label>
+  <input id="author-password" type="password" name="password" autocomplete="current-password" required maxlength="128">
+  <a class="author-forgot" href="{{ url_for('authors.forgot') }}">Forgot your password?</a>
+ </div>
+ <button class="button full-width">Log in ↗</button>
+ <p class="author-switch">New to MyAudioShelf? <a href="{{ url_for('authors.signup') }}">Start a free trial</a></p>
+ <p class="author-switch author-switch-muted">Buying audiobooks? <a href="{{ url_for('auth.login') }}">Listener login</a></p>
+</form>
+</div>{% endblock %}

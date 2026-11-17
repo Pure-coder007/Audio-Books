@@ -1,6 +1,6 @@
 # Business brief integration
 
-MyAudioShelf Ltd (Companies House 17533587) operates this storefront live at https://myaudioshelf.com. The Flask storefront, purchase library, cart, staff CMS, dark/light theme controls and book-opening animations remain in place. Listeners sign in to their library with the email used at checkout; public self-registration is not offered.
+MyAudioShelf Ltd (Companies House 17533587) operates this storefront live at https://myaudioshelf.com. The Flask storefront, purchase library, cart, staff CMS, dark/light theme controls and book-opening animations remain in place. Listeners sign in to their library with the email used at checkout; listener self-registration is not offered. Authors and publishers create their own accounts for a subscription plan (see below).
 
 ## Public pages
 
@@ -11,7 +11,9 @@ MyAudioShelf Ltd (Companies House 17533587) operates this storefront live at htt
 - `/children`: developing Kids programme, families, schools and children's shelf.
 - `/originals`: original IP direction and existing collection.
 - `/innovation`: StoryDNA Engine, persistent Story Intelligence Profile, Sound Recommendation Engine, Audio Continuity Engine and Author Control Layer, presented as live production technology. The engines run in the production pipeline, outside this web application.
-- `/production`: author/publisher form, project metadata, optional private manuscript and six-stage process.
+- `/pricing`: the four author subscription plans (Lite £19, Author £39, Pro Author £79, Publisher from £199 a month) with the 14-day free trial, linked from the main menu.
+- `/production`: leads with the subscription plans and free trial; keeps the author/publisher form, project metadata, optional private manuscript and six-stage process as a contact route.
+- `/authors/signup`, `/authors/login`, `/authors/account`: author sign-up and login. The account shows the author's plan, trial timeline and the projects they have sent, and lets them change plan or password.
 - `/contact`: general, author, children, partnership, creative, innovation/investment and accessibility enquiries.
 - `/privacy`, `/terms`, `/cookies`, `/copyright`, `/accessibility`: public policies, naming MyAudioShelf Ltd and its registered office.
 
@@ -19,7 +21,7 @@ The fixed navbar keeps the main shelves and the Discover and Services menus toge
 
 ## Working submissions and files
 
-Contact and project submissions persist in the existing admin enquiries inbox. Staff see enquiry type and project metadata. Manuscripts support PDF, UTF-8 TXT and non-macro DOCX, with a 10 MB upload cap, basic file validation and random storage filenames. Files are served as attachments only to owner/editor staff; they are not publicly addressable. Media cleanup retains enquiry attachments. Manuscripts are read and assessed by the production team as part of the Audio Book Review service; the storefront stores them securely for that review and does not analyse their text itself.
+Contact and project submissions persist in the existing admin enquiries inbox. Staff see enquiry type and project metadata. Manuscripts support PDF, UTF-8 TXT and non-macro DOCX, with a 10 MB upload cap, basic file validation and random storage filenames. Files are served as attachments only to owner/editor staff; they are not publicly addressable. Media cleanup retains enquiry attachments. Each manuscript is analysed by the StoryDNA Engine in the production pipeline, and the author approves each resulting production decision through the Author Control Layer. The storefront stores manuscripts securely for the production team, who run them through that pipeline.
 
 Newsletter first names are stored alongside consent-based email registration. The existing durable email outbox handles listening-access emails; enquiry auto-replies and newsletter campaigns are not enabled without mail/content setup.
 
@@ -33,7 +35,7 @@ First-party aggregate page views, starts/completions, author submissions and con
 
 The StoryDNA, Sound Recommendation and Continuity Engines are part of MyAudioShelf's production pipeline and are maintained separately from this storefront codebase; `/innovation` presents them.
 
-The storefront currently sells individual audiobooks with free previews, guest checkout and a private listening library. The next storefront releases on the roadmap are author subscription plans, interactive and adaptive audio, parental controls and personalised listening. Each will be documented here as it ships.
+Author subscription plans launch in February 2027: Lite £19, Author £39, Pro Author £79 and Publisher from £199 a month, each with a 14-day free trial. Authors can already create an account and reserve a plan; their trial starts on launch day. The storefront also sells individual audiobooks with free previews, guest checkout and a private listening library. Later roadmap releases are interactive and adaptive audio, parental controls and personalised listening. Each will be documented here as it ships.
 
 Production imagery uses the established genre photograph assets; no stock photograph is claimed as the company's staff or studio. Verified behind-the-scenes photographs, licensed production recordings, official social links and business contact particulars can be added when provided.
 

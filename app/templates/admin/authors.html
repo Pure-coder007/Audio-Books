@@ -1,0 +1,8 @@
+{% extends 'admin/base.html' %}{% from 'macros.html' import pagination %}{% block admin_content %}
+<div class="section-heading"><div><span class="eyebrow">Subscription plans</span><h1>Author accounts.</h1><p>Authors and publishers who have signed up on <a class="underlined" href="{{ url_for('main.pricing') }}">the pricing page</a>. Each has reserved a plan; trials start when plans launch.</p></div></div>
+<div class="stats-grid">{% for plan in plans %}<div><span>{{ plan.name }} · £{{ plan.price }}{{ '+' if plan.from_price }}</span><strong>{{ plan_counts.get(plan.key, 0) }}</strong></div>{% endfor %}</div>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Projects sent</th><th>Joined</th><th>Last login</th></tr></thead><tbody>
+{% for account in page.items %}<tr><td>{{ account.name }}{% if account.pen_name %}<br><small>writes as {{ account.pen_name }}</small>{% endif %}</td><td><a href="mailto:{{ account.email }}">{{ account.email }}</a></td><td><span class="status">{{ account.plan_details.name }}</span></td><td>{% if account.projects %}<a href="{{ url_for('admin.enquiries') }}">{{ account.projects|length }}</a>{% else %}0{% endif %}</td><td>{{ account.created_at.strftime('%d %b %Y') if account.created_at }}</td><td>{{ account.last_login_at.strftime('%d %b %Y') if account.last_login_at else '—' }}</td></tr>
+{% else %}<tr><td colspan="6">Authors who sign up for a plan will appear here.</td></tr>{% endfor %}
+</tbody></table></div>{{ pagination(page) }}
+{% endblock %}

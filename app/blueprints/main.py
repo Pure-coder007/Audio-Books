@@ -218,6 +218,9 @@ def production():
             attachment = save_manuscript(request.files.get('manuscript'))
             enquiry = ProductionEnquiry(name=name, email=email, title=title, message=message, project_details=details)
             if attachment: enquiry.attachment_key, enquiry.attachment_name = attachment
+            from .authors import current_author
+            author = current_author()
+            if author: enquiry.author_account = author
             db.session.add(enquiry)
             db.session.add(AnalyticsEvent(kind='author_enquiry'))
             try:
@@ -228,12 +231,34 @@ def production():
                 raise
             flash('Your project is on our desk. The production team will review your enquiry.', 'success')
             flash('generate_lead', 'analytics')
+            if enquiry.author_account_id:
+                return redirect(url_for('authors.account') + '#projects')
             return redirect(url_for('main.production'))
         except ValueError as error:
             flash(str(error), 'error')
+    from .authors import current_author
+    from ..content.plans import PLANS, TRIAL_DAYS, LAUNCH
     trail = [('Home', '/'), ('Audiobook production', url_for('main.production'))]
-    return render_template('production.html', productions=recent_productions(), trail=trail,
+    return render_template('production.html', productions=recent_productions(), trail=trail, author=current_author(),
+        plans=PLANS, trial_days=TRIAL_DAYS, launch=LAUNCH,
         schema=seo.graph(seo.breadcrumbs(*trail), service_schema('Audiobook production for authors and publishers', url_for('main.production'))))
+
+@bp.get('/pricing')
+def pricing():
+    from ..content.plans import PLANS, FAQ, TRIAL_DAYS, LAUNCH
+    trail = [('Home', '/'), ('Pricing', url_for('main.pricing'))]
+    url = seo.absolute(url_for('main.pricing'))
+    offers = [{'@type': 'Offer', 'name': plan['name'] + ' plan', 'price': f"{plan['price']}.00", 'priceCurrency': 'GBP',
+        'url': seo.absolute(url_for('authors.signup', plan=plan['key'])), 'description': plan['summary'],
+        'priceSpecification': {'@type': 'UnitPriceSpecification', 'price': f"{plan['price']}.00", 'priceCurrency': 'GBP',
+            'billingDuration': 'P1M', 'unitText': 'month', **({'minPrice': f"{plan['price']}.00"} if plan.get('from_price') else {})}} for plan in PLANS]
+    software = {'@type': 'SoftwareApplication', '@id': url + '#software', 'name': 'MyAudioShelf for Authors', 'url': url,
+        'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Web browser', 'provider': seo.organization_ref(),
+        'description': 'Audiobook production software for authors and publishers, built on the StoryDNA Engine.', 'offers': offers}
+    faq = {'@type': 'FAQPage', '@id': url + '#faq', 'mainEntity': [{'@type': 'Question', 'name': q, 'acceptedAnswer': {'@type': 'Answer', 'text': a}} for q, a in FAQ]}
+    from .authors import current_author
+    return render_template('pricing.html', plans=PLANS, faq=FAQ, trial_days=TRIAL_DAYS, launch=LAUNCH, trail=trail, author=current_author(),
+        schema=seo.graph(seo.breadcrumbs(*trail), software, faq))
 
 def service_schema(name, path):
     return {'@type': 'Service', 'name': name, 'url': seo.absolute(path), 'provider': seo.organization_ref(), 'areaServed': 'Worldwide',
@@ -268,7 +293,7 @@ def sitemap():
     books = db.session.scalars(visible_books().where(Audiobook.is_demo.is_(False)).order_by(Audiobook.title)).all()
     pages = [page(url_for('main.home')), page(url_for('main.catalog')), page(url_for('main.featured')),
         *([page(url_for('main.translated'))] if any(b.section == 'translated' or b.language == 'English' for b in books) else []),
-        *([page(url_for('main.reviewed'))] if any(b.section == 'reviewed' for b in books) else []), page(url_for('main.production')),
+        *([page(url_for('main.reviewed'))] if any(b.section == 'reviewed' for b in books) else []), page(url_for('main.production')), page(url_for('main.pricing')),
         *(page('/' + slug) for slug in PAGES), page(url_for('main.resources'), max(a['updated'] for a in ARTICLES.values())),
         *(page(url_for('main.article', slug=slug), article['updated']) for slug, article in ARTICLES.items()),
         page(url_for('main.contact')), *(page('/' + slug) for slug in DOCUMENTS)]

@@ -102,22 +102,28 @@ Docker: `docker build -t myaudioshelf .`. Run with environment variables and a p
 
 ## Scope and verification
 
-**169 automated tests pass.** Automated tests cover guest checkout price snapshots, payment signatures and idempotency, refunds and event order, magic-link expiry/single use, private range streaming, revoked access, progress validation, admin roles, publishing, upload checks, CSRF and page rendering. Desktop/mobile Chrome checks cover preview playback, demo cart checkout, menu behavior, failed requests and horizontal overflow. A separate isolated browser fixture verifies staff sign-in, draft creation, email-link redemption, private chapter playback, playback speed, saved resume and entitlement revocation. Preview screenshots are in `docs/`.
+**194 automated tests pass.** Automated tests cover guest checkout price snapshots, payment signatures and idempotency, refunds and event order, magic-link expiry/single use, private range streaming, revoked access, progress validation, admin roles, publishing, upload checks, CSRF and page rendering. Desktop/mobile Chrome checks cover preview playback, demo cart checkout, menu behavior, failed requests and horizontal overflow. A separate isolated browser fixture verifies staff sign-in, draft creation, email-link redemption, private chapter playback, playback speed, saved resume and entitlement revocation. Preview screenshots are in `docs/`.
 
 The platform is live at [myaudioshelf.com](https://myaudioshelf.com), hosted on Render behind Cloudflare, with payments through Stripe Checkout and audio in private Bunny storage. Background photograph sources are documented in `docs/IMAGE_CREDITS.md`. Detailed cast profile management, discounts, newsletter delivery campaigns, advanced analytics and dynamic section ordering are beyond this initial MVP.
 
-The StoryDNA, Sound Recommendation and Continuity Engines are part of MyAudioShelf's production pipeline and are maintained separately from this storefront codebase; `/innovation` presents them. The **Narrative Audio Map**, the scene-by-scene sound planning module, is specified in `docs/NARRATIVE_AUDIO_MAP.md`.
+The StoryDNA, Sound Recommendation and Continuity Engines are part of MyAudioShelf's production pipeline and are maintained separately from this storefront codebase; `/innovation` presents them.
 
 Cart additions on book cards update the cart count in place and show a View cart notification. Server-rendered forms remain available when JavaScript is disabled.
 
 ### Customer sign-in
 
-Open `http://localhost:5000/login` for existing customer email/password sign-in. Public sign-up is disabled and `/register` is not available. Customers can also access their purchases using a secure email link from `/library`. Staff accounts created with `create-admin` sign in separately at `/admin/login`.
+Open `http://localhost:5000/login` for existing customer email/password sign-in. Listener sign-up is disabled and `/register` is not available. Customers can also access their purchases using a secure email link from `/library`. Staff accounts created with `create-admin` sign in separately at `/admin/login`.
 
 The admin studio includes a refreshed sidebar, dashboard metrics, cover thumbnails beside book details, title search, and a crimson sign-out button. Catalogue and admin list pages use 10 items per page. “Search all books” clears previous filters; “Apply filters” combines the selected filters with the search term. Public sign-up remains disabled.
 # Audio-Books
 
 Render without Redis: set `RATELIMIT_STORAGE_URI=memory://` and use start command `gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120`.
+
+### Author accounts and subscription plans
+
+Authors and publishers sign up at `/authors/signup`, choosing one of four plans: Lite £19, Author £39, Pro Author £79 or Publisher from £199 a month, each with a 14-day free trial. Plans launch in February 2027: until then an account reserves a plan, and the trial starts on launch day. `/pricing` (linked from the main menu) lists the plans; `/production` leads with them and keeps the project form as a contact route. Signed-in authors see their plan, trial timeline and every project they sent at `/authors/account`, and can change plan or password there. Author accounts are separate from listener (`/login`) and staff (`/admin/login`) accounts. Staff owners and support see them under **Author accounts** in the studio. Plan names, prices and features live in `app/content/plans.py`. Billing is not connected yet; it will be added for launch.
+
+**Forgotten passwords.** Authors (`/authors/forgot`) and staff (`/admin/forgot`) can email themselves a reset link from the login page. Links are single-use, last 30 minutes, and only their hash is stored; the page reads the same whether or not the address has an account, and the lookup and email run after the response. Choosing a new password signs the account out everywhere and sends a "your password was changed" notice. Staff resets are written to the audit log, and inactive staff get no link. The emails (`app/templates/emails/password_reset.html`) go out straight away through Resend or SMTP, not the purchase outbox. Without email set up, locally, they appear in the development outbox.
 
 ### Render database initialization
 

@@ -4,9 +4,10 @@ from decimal import Decimal, InvalidOperation
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash, abort, send_file, current_app, g
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from ..extensions import db, limiter
 from ..models import (Audiobook, Author, Category, Chapter, MediaAsset, Order, PurchaseEntitlement,
-    ProductionEnquiry, AdminUser, AuditLog, AnalyticsEvent, EmailDelivery, NewsletterSubscriber, ListeningProgress, BOOK_SECTIONS, now, uid)
+    ProductionEnquiry, AdminUser, AuditLog, AuthorAccount, AnalyticsEvent, EmailDelivery, NewsletterSubscriber, ListeningProgress, BOOK_SECTIONS, now, uid)
 from ..services.access_service import admin_required, normalize_email
 from ..services.media_service import store_upload, publication_field_errors, media_path, AUDIO_ACCEPT
 from ..services.email_service import queue_access_email
@@ -85,6 +86,44 @@ def login():
         flash('Email or password is incorrect.', 'error')
     return render_template('admin/login.html')
 
+STAFF_MIN_PASSWORD = 12
+
+@bp.route('/forgot', methods=['GET', 'POST'])
+@limiter.limit('5 per 15 minutes', methods=['POST'])
+def forgot():
+    from ..services import password_reset_service as resets
+    if request.method == 'POST':
+        try:
+            email = normalize_email(request.form.get('email'))
+        except ValueError:
+            flash('Enter your staff email address.', 'error')
+            return render_template('admin/forgot.html'), 400
+        return resets.after_response(redirect(url_for('admin.forgot', sent=1)), resets.request_reset, 'staff', email)
+    return render_template('admin/forgot.html', sent=request.args.get('sent') == '1')
+
+@bp.route('/reset/<token>', methods=['GET', 'POST'])
+@limiter.limit('10 per 15 minutes', methods=['POST'])
+def reset_password(token):
+    from ..services import password_reset_service as resets
+    _, user = resets.valid_reset('staff', token)
+    if not user:
+        return render_template('admin/reset.html', expired=True), 410
+    error = None
+    if request.method == 'POST':
+        password, confirm = request.form.get('password', ''), request.form.get('confirm', '')
+        if not STAFF_MIN_PASSWORD <= len(password) <= 128:
+            error = f'Use {STAFF_MIN_PASSWORD} to 128 characters.'
+        elif password != confirm:
+            error = 'The two passwords don’t match.'
+        else:
+            user = resets.complete('staff', token, password)
+            if not user:
+                return render_template('admin/reset.html', expired=True), 410
+            session.clear()
+            flash('Your password has been changed. Sign in with your new password.', 'success')
+            return resets.after_response(redirect(url_for('admin.login')), resets.notify_changed, 'staff', user.id)
+    return render_template('admin/reset.html', user=user, error=error, min_password=STAFF_MIN_PASSWORD), 400 if error else 200
+
 @bp.post('/logout')
 def logout():
     session.clear()
@@ -105,6 +144,7 @@ def dashboard():
         'enquiries': db.session.scalar(db.select(db.func.count()).select_from(ProductionEnquiry).where(ProductionEnquiry.status == 'new')),
         'trailers': db.session.scalar(db.select(db.func.count()).select_from(AnalyticsEvent).where(AnalyticsEvent.kind == 'trailer_play')),
         'subscribers': db.session.scalar(db.select(db.func.count()).select_from(NewsletterSubscriber)),
+        'author_accounts': db.session.scalar(db.select(db.func.count()).select_from(AuthorAccount)),
         'queued_email': db.session.scalar(db.select(db.func.count()).select_from(EmailDelivery).where(EmailDelivery.status == 'queued'))}
     top_titles = db.session.execute(db.select(Audiobook.title, db.func.count(PurchaseEntitlement.id)).join(PurchaseEntitlement).where(PurchaseEntitlement.active.is_(True)).group_by(Audiobook.id).order_by(db.func.count(PurchaseEntitlement.id).desc()).limit(5)).all()
     # What keeps published pages out of Google, or makes them thin, with a link to fix each one.
@@ -424,6 +464,14 @@ def enquiries():
         return redirect(url_for('admin.enquiries'))
     page = db.paginate(db.select(ProductionEnquiry).order_by(ProductionEnquiry.created_at.desc()), per_page=10, error_out=False)
     return render_template('admin/enquiries.html', page=page)
+
+@bp.get('/authors')
+@admin_required('owner', 'support')
+def author_accounts():
+    from ..content.plans import PLANS
+    page = db.paginate(db.select(AuthorAccount).options(selectinload(AuthorAccount.projects)).order_by(AuthorAccount.created_at.desc()), per_page=25, error_out=False)
+    plan_counts = dict(db.session.execute(db.select(AuthorAccount.plan, db.func.count()).group_by(AuthorAccount.plan)).all())
+    return render_template('admin/authors.html', page=page, plans=PLANS, plan_counts=plan_counts)
 
 @bp.route('/staff', methods=['GET', 'POST'])
 @admin_required('owner')
